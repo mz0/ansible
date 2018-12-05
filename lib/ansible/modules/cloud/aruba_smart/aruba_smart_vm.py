@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright: (c) 2018, Terry Jones <terry.jones@example.org>
+# Copyright: (c) 2018, Mark Zhitomirsky <mz@exactpro.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 ANSIBLE_METADATA = {
@@ -11,115 +11,157 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: my_sample_module
+module: aruba_smart_vm
 
 short_description: This is my sample module
 
-version_added: "2.4"
+version_added: "2.8"
 
 description:
     - "This is my longer description explaining my sample module"
 
 options:
-    name:
+    user:
         description:
-            - This is the message to send to the sample module
+            - Aruba Cloud ClientID
         required: true
-    new:
+    password:
         description:
-            - Control to demo if the result of this module is changed or not
+            - Aruba Cloud management password
+        required: true
+    dc:
+        description:
+            - List of DCs or DC name
+        required: false
+    size:
+        description:
+            - choose one of S,M,L,XL (vCPU-RAM-SSD-Traffic, Eur per month)
+            - S - 1-1GB-020GB-02TB, 2.79
+            - M - 1-2GB-040GB-05TB, 4.50
+            - L - 2-4GB-080GB-12TB, 8.50
+            - XL- 4-8GB-160GB-25TB, 15.0
+    root_pw:
+        description:
+            - root password, will be auto-generated?
         required: false
 
 extends_documentation_fragment:
-    - azure
+    - aruba_cloud
 
 author:
-    - Your Name (@yourhandle)
+    - Mark Zhitomirski (@mz0)
 '''
 
 EXAMPLES = '''
-# Pass in a message
-- name: Test with a message
-  my_new_test_module:
-    name: hello world
-
-# pass in a message and have changed true
+# list VMs
 - name: Test with a message and changed output
-  my_new_test_module:
+  aruba_smart_vm:
     name: hello world
     new: true
-
-# fail the module
-- name: Test failure of the module
-  my_new_test_module:
-    name: fail me
 '''
 
 RETURN = '''
-original_message:
-    description: The original name param that was passed in
-    type: str
-message:
-    description: The output message that the sample module generates
+data:
+    description: List of VMs
+    type: dict
+sample: { FIXME
+}
 '''
+import json
 
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.urls import fetch_url
 
-def run_module():
-    # define available arguments/parameters a user can pass to the module
-    module_args = dict(
-        name=dict(type='str', required=True),
-        new=dict(type='bool', required=False, default=False)
-    )
 
-    # seed the result dict in the object
-    # we primarily care about changed and state
-    # change is if this module effectively modified the target
-    # state will include any data that you want your module to pass back
-    # for consumption, for example, in a subsequent task
-    result = dict(
-        changed=False,
-        original_message='',
-        message=''
-    )
+class Response(object):
 
-    # the AnsibleModule object will be our abstraction working with Ansible
-    # this includes instantiation, a couple of common attr would be the
-    # args/params passed to the execution, as well as if the module
-    # supports check mode
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    def __init__(self, resp, info):
+        self.body = None
+        if resp:
+            self.body = resp.read()
+        self.info = info
 
-    # if the user is working with this module in only check mode we do not
-    # want to make any changes to the environment, just return the current
-    # state with no modifications
-    if module.check_mode:
-        return result
+    @property
+    def json(self):
+        if not self.body:
+            if "body" in self.info:
+                return json.loads(self.info["body"])
+            return None
+        try:
+            return json.loads(self.body)
+        except ValueError:
+            return None
 
-    # manipulate or modify the state as needed (this is going to be the
-    # part where your module will do what it needs to do)
-    result['original_message'] = module.params['name']
-    result['message'] = 'goodbye'
+    @property
+    def status_code(self):
+        return self.info["status"]
 
-    # use whatever logic you need to determine whether or not this module
-    # made any modifications to your target
-    if module.params['new']:
-        result['changed'] = True
 
-    # during the execution of the module, if there is an exception or a
-    # conditional state that effectively causes a failure, run
-    # AnsibleModule.fail_json() to pass in the message and the result
-    if module.params['name'] == 'fail me':
-        module.fail_json(msg='You requested this to fail', **result)
+class ArubaCloudAPI(object):
 
-    # in the event of a successful module execution, you will want to
-    # simple AnsibleModule.exit_json(), passing the key/value results
+    def __init__(self, module, headers):
+        self.module = module
+        self.headers = headers
+        self.auser = module.params.get('user')
+        self.passwd = module.params.get('password')
+        self.timeout = module.params.get('timeout', 30)
+        self.tpl_url = "https://api.{0}.computing.cloud.it/WsEndUser/v2.9/WsEndUser.svc/json/{1}"
+
+    def _url_builder(self, dc, cmd):
+        return self.tpl_url.format(dc, cmd)
+
+    def send(self, method, dc, cmd, data=None):
+        url = self._url_builder(dc, cmd)
+        data = self.module.jsonify(data)
+        timeout = self.module.params['timeout']
+        headers = {'Content-Type': 'application/json', 'Content-Length': str(len(data))}
+        resp, info = fetch_url(self.module, url, data=data, headers=headers, method=method, timeout=timeout)
+
+        # Exceptions in fetch_url may result in a status -1, the ensures a
+        if info['status'] == -1:
+            self.module.fail_json(msg=info['msg'])
+
+        return Response(resp, info)
+
+    def post(self, dc, cmd, data=None):
+        return self.send('POST', dc, cmd, data, headers)
+
+
+def core(module):
+    auser = module.params['user']
+    apassw = module.params['password']
+#   state = module.params['state']
+#   name = module.params['name']
+#   ssh_pub_key = module.params['ssh_pub_key']
+    cmd = "GetServers"
+    cmd_data = '{{"ApplicationId": "{}", "RequestId": "{}", "SessionId": "{}", "Password": "{}", "Username": "{}"}}'\
+        .format(cmd,cmd,cmd,apassw,auser)
+    reqest = ArubaCloudAPI(module, "dc1", cmd, cmd_data)
+
     module.exit_json(**result)
 
+
 def main():
-    run_module()
+    module = AnsibleModule(
+        argument_spec=dict(
+            state=dict(choices=['present', 'absent'], default='present'),
+            name=dict(required=False),
+            ssh_pub_key=dict(required=False),
+            creds=dict(
+                no_log=True,
+                required=True,
+            ),
+            validate_certs=dict(type='bool', default=True),
+            timeout=dict(type='int', default=30),
+        ),
+        required_one_of=(
+            ('fingerprint', 'ssh_pub_key'),
+        ),
+        supports_check_mode=True,
+    )
+
+    core(module)
+
 
 if __name__ == '__main__':
     main()
