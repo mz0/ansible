@@ -368,7 +368,8 @@ class StrategyBase:
                 return self._inventory.get_host(host_name)
 
         def search_handler_blocks_by_name(handler_name, handler_blocks):
-            for handler_block in handler_blocks:
+            # iterate in reversed order since last handler loaded with the same name wins
+            for handler_block in reversed(handler_blocks):
                 for handler_task in handler_block.block:
                     if handler_task.name:
                         handler_vars = self._variable_manager.get_vars(play=iterator._play, task=handler_task)
@@ -394,7 +395,8 @@ class StrategyBase:
             return None
 
         def search_handler_blocks_by_uuid(handler_uuid, handler_blocks):
-            for handler_block in handler_blocks:
+            # iterate in reversed order since last handler loaded with the same name wins
+            for handler_block in reversed(handler_blocks):
                 for handler_task in handler_block.block:
                     if handler_uuid == handler_task._uuid:
                         return handler_task
@@ -402,7 +404,7 @@ class StrategyBase:
 
         def parent_handler_match(target_handler, handler_name):
             if target_handler:
-                if isinstance(target_handler, (TaskInclude, IncludeRole)):
+                if isinstance(target_handler, (TaskInclude, IncludeRole)) and not getattr(target_handler, 'statically_loaded', True):
                     try:
                         handler_vars = self._variable_manager.get_vars(play=iterator._play, task=target_handler)
                         templar = Templar(loader=self._loader, variables=handler_vars)

@@ -52,6 +52,19 @@ Deprecated
         vars:
           ansible_aync_dir: /tmp/.ansible_async
 
+* Plugin writers who need a ``FactCache`` object should be aware of two deprecations:
+
+  1. The ``FactCache`` class has moved from ``ansible.plugins.cache.FactCache`` to
+     ``ansible.vars.fact_cache.FactCache``.  This is because the ``FactCache`` is not part of the
+     cache plugin API and cache plugin authors should not be subclassing it.  ``FactCache`` is still
+     available from its old location but will issue a deprecation warning when used from there.  The
+     old location will be removed in Ansible 2.12.
+
+  2. The ``FactCache.update()`` method has been converted to follow the dict API.  It now takes a
+     dictionary as its sole argument and updates itself with the dictionary's items.  The previous
+     API where ``update()`` took a key and a value will now issue a deprecation warning and will be
+     removed in 2.12.  If you need the old behaviour switch to ``FactCache.first_order_merge()``
+     instead.
 
 Modules
 =======
@@ -113,6 +126,10 @@ Noteworthy module changes
 * If ``docker_network`` or ``docker_volume`` were called with ``diff: yes``, ``check_mode: yes`` or ``debug: yes``,
   a return value called ``diff`` was returned of type ``list``. To enable proper diff output, this was changed to
   type ``dict``; the original ``list`` is returned as ``diff.differences``.
+
+* The ``na_ontap_cluster_peer`` module has replaced ``source_intercluster_lif`` and ``dest_intercluster_lif`` string options with
+  ``source_intercluster_lifs`` and ``dest_intercluster_lifs`` list options
+
 
 Plugins
 =======

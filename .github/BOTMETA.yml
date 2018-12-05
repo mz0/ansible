@@ -48,7 +48,9 @@ files:
   $modules/cloud/amazon/cloudformation.py: ryansb tedder
   $modules/cloud/amazon/cloudfront_facts.py: willthames
   $modules/cloud/amazon/cloudtrail.py: $team_ansible
-  $modules/cloud/amazon/ec2.py: $team_ansible
+  $modules/cloud/amazon/ec2.py:
+    maintainers: $team_ansible
+    ignored: skvidal
   $modules/cloud/amazon/ec2_ami.py: willthames
   $modules/cloud/amazon/ec2_asg.py: $team_ansible s-hertel ryansb
   $modules/cloud/amazon/ec2_group.py: $team_ansible
@@ -114,7 +116,7 @@ files:
   $modules/cloud/lxd/: hnakamur
   $modules/cloud/memset/: analbeard
   $modules/cloud/misc/ovirt.py:
-    ignored: vincentvdk
+    ignored: vincentvdk skvidal
     maintainers: joshainglis karmab machacekondra mwperina
   $modules/cloud/misc/virt.py: $team_ansible
   $modules/cloud/misc/xenserver_facts.py:
@@ -136,6 +138,7 @@ files:
   $modules/cloud/vmware/_vsphere_guest.py: dagwieers
   $modules/cloud/vultr/: $team_vultr
   $modules/cloud/webfaction/: quentinsf
+  $modules/cloud/xenserver/xenserver_guest.py: bvitnik
   $modules/clustering/k8s/:
     maintainers: chouseknecht maxamillion fabianvf flaper87 willthames
     labels: k8s
@@ -180,7 +183,9 @@ files:
     notified: cyberark-bizdev
   $modules/identity/ipa/: $team_ipa
   $modules/identity/keycloak/: eikef
-  $modules/inventory/add_host.py: $team_ansible
+  $modules/inventory/add_host.py:
+    ignored: skvidal
+    maintainers: $team_ansible
   $modules/inventory/group_by.py: $team_ansible
   $modules/messaging/rabbitmq/: $team_rabbitmq
   $modules/monitoring/datadog_event.py:
@@ -314,6 +319,8 @@ files:
     labels: pure_storage
   $modules/storage/glusterfs/: devyanikota
   $modules/storage/ibm/: tzurE
+  $modules/system/alternatives.py:
+    ignored: DavidWittman
   $modules/system/at.py: $team_ansible
   $modules/system/authorized_key.py: $team_ansible
   $modules/system/facter.py: $team_ansible
@@ -323,7 +330,9 @@ files:
   $modules/system/interfaces_file.py: obourdon
   $modules/system/modprobe.py:
     ignored: stygstra
-  $modules/system/mount.py: $team_ansible jtyr
+  $modules/system/mount.py:
+    maintainers: $team_ansible jtyr
+    ignored: skvidal
   $modules/system/ohai.py: $team_ansible
   $modules/system/osx_defaults.py:
     ignored: frenck
@@ -633,6 +642,8 @@ files:
     maintainers: $team_scaleway
     labels:
       - cloud
+  $module_utils/xenserver.py:
+    maintainers: bvitnik
   lib/ansible/playbook/handler.py:
     keywords:
       - handlers
@@ -886,6 +897,8 @@ files:
   $plugins/connection/persistent.py:
     maintainers: $team_networking
     labels: networking
+  $plugins/connection/saltstack.py:
+    support: community
   $plugins/connection/winrm.py:
     maintainers: $team_windows_core
     labels:
@@ -1062,6 +1075,9 @@ files:
   lib/ansible/utils/module_docs_fragments/acme.py:
     support: community
     maintainers: resmo felixfontein
+  lib/ansible/utils/module_docs_fragments/xenserver.py:
+    support: community
+    maintainers: bvitnik
   test/sanity/validate-modules:
     notified:
       - mattclay
@@ -1078,6 +1094,8 @@ files:
   docs/:
     maintainers:
       - acozine
+  docs/docsite/:
+    labels: docsite
   docs/docsite/rst/network/:
     labels: networking
     maintainers:
@@ -1151,7 +1169,7 @@ macros:
   team_netapp: hulquest lmprice ndswartz amit0701 schmots1 carchi8py lonico
   team_netbox: sieben anthony25 fragmentedpacket nikkytub pilou-
   team_netscaler: chiradeep giorgos-nikolopoulos
-  team_netvisor: Qalthos amitsi
+  team_netvisor: Qalthos amitsi pdam preetiparasar csharpe-pn
   team_networking: Qalthos ganeshrn rcarrillocruz trishnaguha gdpak justjais NilashishC
   team_nso: cmoberg cnasten tbjurman
   team_nxos: mikewiebe rahushen rcarrillocruz trishnaguha tstoner

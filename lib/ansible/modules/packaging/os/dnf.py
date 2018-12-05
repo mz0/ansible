@@ -102,7 +102,7 @@ options:
     version_added: "2.7"
   update_cache:
     description:
-      - Force yum to check if cache is out of date and redownload if needed.
+      - Force dnf to check if cache is out of date and redownload if needed.
         Has an effect only if state is I(present) or I(latest).
     type: bool
     default: "no"
@@ -141,7 +141,7 @@ options:
     description:
       - Disable the excludes defined in DNF config files.
       - If set to C(all), disables all excludes.
-      - If set to C(main), disable excludes defined in [main] in yum.conf.
+      - If set to C(main), disable excludes defined in [main] in dnf.conf.
       - If set to C(repoid), disable excludes defined for given repo id.
     version_added: "2.7"
   validate_certs:
@@ -340,11 +340,10 @@ class DnfModule(YumDnf):
         result['nevra'] = '{epoch}:{name}-{version}-{release}.{arch}'.format(
             **result)
 
-        # Added for YUM3/YUM4 compat
-        if package.repoid == 'installed':
-            result['yumstate'] = 'installed'
-        else:
+        if package.installtime == 0:
             result['yumstate'] = 'available'
+        else:
+            result['yumstate'] = 'installed'
 
         return result
 
@@ -465,10 +464,10 @@ class DnfModule(YumDnf):
 
     def _ensure_dnf(self):
         if not HAS_DNF:
-            if PY2:
-                package = 'python2-dnf'
-            else:
+            if not PY2:
                 package = 'python3-dnf'
+            else:
+                package = 'python2-dnf'
 
             if self.module.check_mode:
                 self.module.fail_json(
@@ -496,14 +495,10 @@ class DnfModule(YumDnf):
     def _configure_base(self, base, conf_file, disable_gpg_check, installroot='/'):
         """Configure the dnf Base object."""
 
-        if self.enable_plugin and self.disable_plugin:
-            base.init_plugins(self.disable_plugin, self.enable_plugin)
-        elif self.enable_plugin:
-            base.init_plugins(enable_plugins=self.enable_plugin)
-        elif self.disable_plugin:
-            base.init_plugins(self.disable_plugin)
-
         conf = base.conf
+
+        # Read the configuration file
+        conf.read()
 
         # Turn off debug messages in the output
         conf.debuglevel = 0
@@ -564,9 +559,6 @@ class DnfModule(YumDnf):
         # Default in dnf upstream is true
         conf.clean_requirements_on_remove = self.autoremove
 
-        # Read the configuration file
-        conf.read()
-
     def _specify_repositories(self, base, disablerepo, enablerepo):
         """Enable and disable repositories matching the provided patterns."""
         base.read_all_repos()
@@ -589,6 +581,12 @@ class DnfModule(YumDnf):
         base = dnf.Base()
         self._configure_base(base, conf_file, disable_gpg_check, installroot)
         self._specify_repositories(base, disablerepo, enablerepo)
+        try:
+            base.init_plugins(set(self.disable_plugin), set(self.enable_plugin))
+            base.pre_configure_plugins()
+            base.configure_plugins()
+        except AttributeError:
+            pass  # older versions of dnf didn't require this and don't have these methods
         try:
             base.fill_sack(load_system_repo='auto')
         except dnf.exceptions.RepoError as e:

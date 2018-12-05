@@ -302,7 +302,7 @@ class Connection(ConnectionBase):
             raise AnsibleError("paramiko is not installed")
 
         port = self._play_context.port or 22
-        display.vvv("ESTABLISH CONNECTION FOR USER: %s on PORT %s TO %s" % (self._play_context.remote_user, port, self._play_context.remote_addr),
+        display.vvv("ESTABLISH PARAMIKO SSH CONNECTION FOR USER: %s on PORT %s TO %s" % (self._play_context.remote_user, port, self._play_context.remote_addr),
                     host=self._play_context.remote_addr)
 
         ssh = paramiko.SSHClient()
@@ -528,6 +528,10 @@ class Connection(ConnectionBase):
 
         f.close()
 
+    def reset(self):
+        self.close()
+        self._connect()
+
     def close(self):
         ''' terminate the connection '''
 
@@ -585,7 +589,7 @@ class Connection(ConnectionBase):
 
                 os.rename(tmp_keyfile.name, self.keyfile)
 
-            except:
+            except Exception:
 
                 # unable to save keys, including scenario when key was invalid
                 # and caught earlier
@@ -593,3 +597,4 @@ class Connection(ConnectionBase):
             fcntl.lockf(KEY_LOCK, fcntl.LOCK_UN)
 
         self.ssh.close()
+        self._connected = False

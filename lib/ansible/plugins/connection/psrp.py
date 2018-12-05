@@ -156,8 +156,10 @@ options:
 
 import base64
 import json
+import logging
 import os
 
+from ansible import constants as C
 from ansible.errors import AnsibleConnectionFailure, AnsibleError
 from ansible.errors import AnsibleFileNotFound
 from ansible.module_utils.parsing.convert_bool import boolean
@@ -203,6 +205,11 @@ class Connection(ConnectionBase):
 
         self._shell_type = 'powershell'
         super(Connection, self).__init__(*args, **kwargs)
+
+        if not C.DEFAULT_DEBUG:
+            logging.getLogger('pypsrp').setLevel(logging.INFO)
+            logging.getLogger('requests_credssp').setLevel(logging.INFO)
+            logging.getLogger('urllib3').setLevel(logging.INFO)
 
     def _connect(self):
         if not HAS_PYPSRP:
@@ -282,6 +289,7 @@ class Connection(ConnectionBase):
             # starting a new interpreter to save on time
             b_command = base64.b64decode(cmd.split(" ")[-1])
             script = to_text(b_command, 'utf-16-le')
+            in_data = to_text(in_data, errors="surrogate_or_strict", nonstring="passthru")
             display.vvv("PSRP: EXEC %s" % script, host=self._psrp_host)
         else:
             # in other cases we want to execute the cmd as the script

@@ -734,9 +734,13 @@ class Legacy(FactsBase):
         ('psmodel', 'model'),
         ('psnum', 'number'),
         ('ps_status', 'status'),
+        ('ps_status_3k', 'status'),
         ('actual_out', 'actual_output'),
         ('actual_in', 'actual_in'),
-        ('total_capa', 'total_capacity')
+        ('total_capa', 'total_capacity'),
+        ('input_type', 'input_type'),
+        ('watts', 'watts'),
+        ('amps', 'amps')
     ])
 
     def populate(self):
@@ -822,10 +826,16 @@ class Legacy(FactsBase):
 
     def parse_structured_power_supply_info(self, data):
         if data.get('powersup').get('TABLE_psinfo_n3k'):
-            data = data['powersup']['TABLE_psinfo_n3k']['ROW_psinfo_n3k']
+            fact = data['powersup']['TABLE_psinfo_n3k']['ROW_psinfo_n3k']
         else:
-            data = data['powersup']['TABLE_psinfo']['ROW_psinfo']
-        objects = list(self.transform_iterable(data, self.POWERSUP_MAP))
+            if isinstance(data['powersup']['TABLE_psinfo'], list):
+                fact = []
+                for i in data['powersup']['TABLE_psinfo']:
+                    fact.append(i['ROW_psinfo'])
+            else:
+                fact = data['powersup']['TABLE_psinfo']['ROW_psinfo']
+
+        objects = list(self.transform_iterable(fact, self.POWERSUP_MAP))
         return objects
 
     def parse_hostname(self, data):

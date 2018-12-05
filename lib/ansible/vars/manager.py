@@ -36,10 +36,10 @@ from ansible.errors import AnsibleError, AnsibleParserError, AnsibleUndefinedVar
 from ansible.inventory.host import Host
 from ansible.inventory.helpers import sort_groups, get_group_vars
 from ansible.module_utils._text import to_native
-from ansible.module_utils.common._collections_compat import MutableMapping, Sequence
+from ansible.module_utils.common._collections_compat import Mapping, MutableMapping, Sequence
 from ansible.module_utils.six import iteritems, text_type, string_types
 from ansible.plugins.loader import lookup_loader, vars_loader
-from ansible.plugins.cache import FactCache
+from ansible.vars.fact_cache import FactCache
 from ansible.template import Templar
 from ansible.utils.display import Display
 from ansible.utils.listify import listify_lookup_plugin_terms
@@ -133,8 +133,8 @@ class VariableManager:
     @extra_vars.setter
     def extra_vars(self, value):
         ''' ensures a clean copy of the extra_vars are used to set the value '''
-        if not isinstance(value, MutableMapping):
-            raise AnsibleAssertionError("the type of 'value' for extra_vars should be a MutableMapping, but is a %s" % type(value))
+        if not isinstance(value, Mapping):
+            raise AnsibleAssertionError("the type of 'value' for extra_vars should be a Mapping, but is a %s" % type(value))
         self._extra_vars = value.copy()
 
     def set_inventory(self, inventory):
@@ -629,27 +629,31 @@ class VariableManager:
         Sets or updates the given facts for a host in the fact cache.
         '''
 
-        if not isinstance(facts, dict):
-            raise AnsibleAssertionError("the type of 'facts' to set for host_facts should be a dict but is a %s" % type(facts))
+        if not isinstance(facts, Mapping):
+            raise AnsibleAssertionError("the type of 'facts' to set for host_facts should be a Mapping but is a %s" % type(facts))
 
         try:
-            try:
-                # this is a cache plugin, not a dictionary
-                self._fact_cache.update({host.name: facts})
-            except TypeError:
-                # this is here for backwards compatibilty for the time cache plugins were not 'dict compatible'
-                self._fact_cache.update(host.name, facts)
-                display.deprecated("Your configured fact cache plugin is using a deprecated form of the 'update' method", version="2.12")
+            host_cache = self._fact_cache[host.name]
         except KeyError:
-            self._fact_cache[host.name] = facts
+            # We get to set this as new
+            host_cache = facts
+        else:
+            if not isinstance(host_cache, MutableMapping):
+                raise TypeError('The object retrieved for {0} must be a MutableMapping but was'
+                                ' a {1}'.format(host.name, type(host_cache)))
+            # Update the existing facts
+            host_cache.update(facts)
+
+        # Save the facts back to the backing store
+        self._fact_cache[host.name] = host_cache
 
     def set_nonpersistent_facts(self, host, facts):
         '''
         Sets or updates the given facts for a host in the fact cache.
         '''
 
-        if not isinstance(facts, dict):
-            raise AnsibleAssertionError("the type of 'facts' to set for nonpersistent_facts should be a dict but is a %s" % type(facts))
+        if not isinstance(facts, Mapping):
+            raise AnsibleAssertionError("the type of 'facts' to set for nonpersistent_facts should be a Mapping but is a %s" % type(facts))
 
         try:
             self._nonpersistent_fact_cache[host.name].update(facts)
