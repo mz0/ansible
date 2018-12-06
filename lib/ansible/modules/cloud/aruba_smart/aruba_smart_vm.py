@@ -78,9 +78,6 @@ class ArubaCloudAPI(object):
 def core(module):
     auser = module.params['user']
     apassw = module.params['password']
-    state = module.params['state']
-#   name = module.params['name']
-#   ssh_pub_key = module.params['ssh_pub_key']
     cmd = "GetServers"
     cmd_data = '{{"ApplicationId": "{}", "RequestId": "{}", "SessionId": "{}", "Password": "{}", "Username": "{}"}}'\
         .format(cmd, cmd, cmd, apassw, auser)
@@ -93,10 +90,8 @@ def core(module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            state=dict(choices=['present', 'absent', 'fresh'], default='present'),
             user=dict(required=True),
             password=dict(no_log=True, required=True),
-            timeout=dict(type='int', default=30),
         ),
         supports_check_mode=False,
     )
