@@ -1,3 +1,32 @@
 TODO
 . /shr/bemigot/do2/hacking/env-setup
 ansible-playbook ./aruba.yml
+
+
+cd ../digital_ocean && ansible-playbook ./try1.yml
+ [WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
+
+
+PLAY [localhost] ****************************************************************************************************************************************************************
+
+TASK [digital_ocean_sshkey] *****************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [debug] ********************************************************************************************************************************************************************
+ok: [localhost] => {
+    "do_key": {
+        "changed": false,
+        "data": {
+            "ssh_key": {
+                "fingerprint": "04:39:43:86:22:6b:e6:fa:c0:22:38:2d:b2:91:13:9c",
+                "id": 23550519,
+                "name": "ansible",
+                "public_key": "ssh-rsa AAAAB3Nza..DVSSwm/ mz0@nb13"
+            }
+        },
+        "failed": false
+    }
+}
+
+PLAY RECAP **********************************************************************************************************************************************************************
+localhost                  : ok=2    changed=0    unreachable=0    failed=0    skipped=0

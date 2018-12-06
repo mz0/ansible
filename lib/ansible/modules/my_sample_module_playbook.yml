@@ -1,0 +1,10 @@
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - my_sample_module:
+        "name": "hello"
+        "new": true
+      register: out1
+
+    - debug: var=out1
