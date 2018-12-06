@@ -87,7 +87,6 @@ import json
 import hashlib
 import base64
 
-from ansible.module_utils.basic import env_fallback
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url
 
@@ -245,8 +244,6 @@ def main():
             ssh_pub_key=dict(required=False),
             oauth_token=dict(
                 no_log=True,
-                # Support environment variable for DigitalOcean OAuth Token
-                fallback=(env_fallback, ['DO_API_TOKEN', 'DO_API_KEY', 'DO_OAUTH_TOKEN']),
                 required=True,
             ),
             validate_certs=dict(type='bool', default=True),
