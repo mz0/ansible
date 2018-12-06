@@ -1,0 +1,10 @@
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - aruba_smart_vm:
+        user:     "{{ lookup('file', '~/.ssh/aruba/my.user') }}"
+        password: "{{ lookup('file', '~/.ssh/aruba/my.password') }}"
+      register:  re1
+
+    - debug: var=re1

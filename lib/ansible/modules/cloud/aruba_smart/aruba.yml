@@ -2,20 +2,15 @@
   connection: local
   gather_facts: no
   vars:
-    - arubau: "{{ lookup('ini', 'user   section='+acct+'  '+file) }}"
-    - arubap: "{{ lookup('ini', 'passwd section='+acct+'  '+file) }}"
-    - file: file=~/.ssh/aruba/ansible.ini
-    - acct: acct0
+    arubau: "{{ lookup('ini', 'user   section='+acct+'  '+secrets) }}"
+    arubap: "{{ lookup('ini', 'passwd section='+acct+'  '+secrets) }}"
+    secrets: file=~/.ssh/aruba/ansible.ini
+    acct: acct0
   tasks:
     - debug: var=arubau
-    - name: try module
-      aruba_smart_vm:
+    - aruba_smart_vm:
         user: "{{ arubau }}"
         password: "{{ arubap }}"
-        dc: 
-          - It1
-          - UK
-          - DE
-      register:  vm_list
+      register:  response
 
-    - debug: var=vm_list
+    - debug: var=response
