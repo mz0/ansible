@@ -1,0 +1,23 @@
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - digital_ocean_sshkey:
+        oauth_token: "{{ lookup('file', '~/.ssh/do/my.apikey') }}"
+        fingerprint: "04:39:43:86:22:6b:e6:fa:c0:22:38:2d:b2:91:13:9c"
+      register: do_key
+
+    - debug: var=do_key
+     
+#"do_key": {
+# "changed": false, 
+# "data": {
+#   "ssh_key": {
+#     "fingerprint": "04:39:43:86:22:6b:e6:fa:c0:22:38:2d:b2:91:13:9c", 
+#     "id": 23550519, 
+#     "name": "ansible", 
+#     "public_key": "ssh-rsa AAAAB3..DVSSwm/ mz0@nb13"
+#   }
+# },
+# "failed": false
+#}

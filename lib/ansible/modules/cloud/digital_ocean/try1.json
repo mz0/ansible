@@ -1,0 +1,3 @@
+{"ANSIBLE_MODULE_ARGS":
+{"oauth_token": "{{ lookup('file', '~/.ssh/do/my.apikey') }}", "fingerprint": "04:39:43:86:22:6b:e6:fa:c0:22:38:2d:b2:91:13:9c"}
+}
