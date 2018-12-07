@@ -92,6 +92,7 @@ def main():
         argument_spec=dict(
             user=dict(required=True),
             password=dict(no_log=True, required=True),
+            timeout=dict(default=120, type='int'),
         ),
         supports_check_mode=False,
     )

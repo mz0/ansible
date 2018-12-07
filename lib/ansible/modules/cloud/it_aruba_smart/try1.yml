@@ -2,7 +2,7 @@
   connection: local
   gather_facts: no
   tasks:
-    - aruba_smart_vm:
+    - it_aruba_smart:
         user:     "{{ lookup('file', '~/.ssh/aruba/my.user') }}"
         password: "{{ lookup('file', '~/.ssh/aruba/my.password') }}"
       register:  re1

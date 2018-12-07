@@ -8,7 +8,7 @@
     acct: acct0
   tasks:
     - debug: var=arubau
-    - aruba_smart_vm:
+    - it_aruba_smart:
         user: "{{ arubau }}"
         password: "{{ arubap }}"
       register:  response
