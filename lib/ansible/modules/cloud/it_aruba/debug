@@ -34,4 +34,48 @@ $ tree -as --dirsfirst ~/.ansible/tmp/$LASTRUN
     ├── args
     └── __main__.py
 
-$ python ~/.ansible/tmp/$LASTRUN/debug_dir execute
+$ python ~/.ansible/tmp/$LASTRUN/debug_dir execute # cannot read args !???
+
+$ ansible-playbook aruba.yml
+[WARNING]: provided hosts list is empty, only localhost is available.
+  Note that the implicit localhost does not match 'all'
+
+PLAY [localhost] *********************************************
+
+TASK [it_aruba_smart] ****************************************
+ok: [localhost]
+
+TASK [debug] *************************************************
+ok: [localhost] => {
+    "response": {
+        "ansible_facts": {
+            "ExceptionInfo": null,
+            "ResultCode": 0,
+            "ResultMessage": null,
+            "Success": true,
+            "Value": [
+                {
+                    "Busy": false,
+                    "CPUQuantity": 1,
+                    "CompanyId": 172,
+                    "DatacenterId": 1,
+                    "HDQuantity": 1,
+                    "HDTotalSize": 20,
+                    "HypervisorServerType": 2,
+                    "HypervisorType": 4,
+                    "Name": "La",
+                    "OSTemplateId": 1723,
+                    "RAMQuantity": 1,
+                    "ServerId": 292659,
+                    "ServerStatus": 3,
+                    "UserId": 70331
+                }
+            ]
+        },
+        "changed": false,
+        "failed": false
+    }
+}
+
+PLAY RECAP ***************************************************
+localhost: ok=3  changed=0  unreachable=0  failed=0  skipped=0

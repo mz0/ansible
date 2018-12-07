@@ -64,11 +64,10 @@ class ArubaCloudAPI(object):
 
     def send(self, method, dc, cmd, data):
         url = self._url_builder(dc, cmd)
-        data = self.module.jsonify(data)
+        #data = self.module.jsonify(data)
         timeout = self.module.params['timeout']
         headers = {'Content-Type': 'application/json', 'Content-Length': str(len(data))}
         resp, info = fetch_url(self.module, url, data=data, headers=headers, method=method, timeout=timeout)
-
         return Response(resp, info)
 
     def post(self, dc, cmd, data):
@@ -83,8 +82,14 @@ def core(module):
         .format(cmd, cmd, cmd, apassw, auser)
     api = ArubaCloudAPI(module)
     response = api.post(dc="dc1", cmd=cmd, data=cmd_data)
-    json1 = response.json
-    module.exit_json(changed=False, data=json1)
+    status_code = response.status_code
+    json = response.json
+
+    if status_code == 200:
+        module.exit_json(changed=False, ansible_facts=json)
+    else:
+        module.fail_json(msg='Error fetching facts [{0}: {1}]'.format(
+            status_code, response.json['message']))
 
 
 def main():
