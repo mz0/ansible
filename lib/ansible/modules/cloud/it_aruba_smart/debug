@@ -1,0 +1,65 @@
+TODO
+. /shr/bemigot/do2/hacking/env-setup
+ansible-playbook ./aruba.yml
+
+
+cd ../digital_ocean && ansible-playbook ./try1.yml
+ [WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
+
+
+PLAY [localhost] ****************************************************************************************************************************************************************
+
+TASK [digital_ocean_sshkey] *****************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [debug] ********************************************************************************************************************************************************************
+ok: [localhost] => {
+    "do_key": {
+        "changed": false,
+        "data": {
+            "ssh_key": {
+                "fingerprint": "04:39:43:86:22:6b:e6:fa:c0:22:38:2d:b2:91:13:9c",
+                "id": 23550519,
+                "name": "ansible",
+                "public_key": "ssh-rsa AAAAB3Nza..DVSSwm/ mz0@nb13"
+            }
+        },
+        "failed": false
+    }
+}
+
+PLAY RECAP **********************************************************************************************************************************************************************
+localhost                  : ok=2    changed=0    unreachable=0    failed=0    skipped=0
+========
+$ ANSIBLE_KEEP_REMOTE_FILES=1 ansible-playbook try1.yml
+
+$ LASTRUN=$(ls -t ~/.ansible/tmp/  |head -1)
+
+$ /usr/bin/python ~/.ansible/tmp/$LASTRUN/AnsiballZ_digital_ocean_zzz.py explode
+
+$ tree ~/.ansible/tmp/$LASTRUN/
+/home/mz0/.ansible/tmp/ansible-tmp-1544130104.99-70460427274244/
+├── AnsiballZ_digital_ocean_zzz.py       98431
+└── debug_dir
+    ├── ansible
+    │   ├── __init__.py                    119
+    │   └── module_utils
+    │       ├── basic.py                117169
+    │       ├── common
+    │       │   ├── _collections_compat.py 895
+    │       │   ├── file.py               4101
+    │       │   ├── __init__.py              0
+    │       │   └── process.py            1504
+    │       ├── __init__.py                 72
+    │       ├── parsing
+    │       │   ├── convert_bool.py       1008
+    │       │   └── __init__.py              0
+    │       ├── pycompat24.py             4055
+    │       ├── six
+    │       │   └── __init__.py          31146
+    │       ├── _text.py                 12489
+    │       └── urls.py                  54890
+    ├── args
+    └── __main__.py
+
+6 directories, 16 files
