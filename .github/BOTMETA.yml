@@ -310,6 +310,7 @@ files:
   $modules/remote_management/redfish/: $team_redfish
   $modules/remote_management/stacki/stacki_host.py: bbyhuy bsanders
   $modules/remote_management/ucs/: $team_ucs
+  $modules/remote_management/dellemc/: rajeevarakkal
   $modules/source_control/git.py: $team_ansible
   $modules/source_control/github_key.py:
     ignored: erydo
@@ -623,6 +624,8 @@ files:
   $module_utils/remote_management/ucs:
     maintainers: $team_ucs
     labels: ucs
+  $module_utils/remote_management/dellemc:
+    maintainers: rajeevarakkal
   $module_utils/pure.py:
     maintainers: $team_purestorage
     labels: pure_storage
@@ -907,11 +910,19 @@ files:
 ###############################
 # plugins/filter
   $plugins/filter/:
+    support: community
+  $plugins/filter/__init__.py:
+    support: core
+  $plugins/filter/core.py:
+    support: core
+  $plugins/filter/mathstuff.py:
     support: core
   $plugins/filter/network.py:
     support: network
     maintainers: $team_networking
     labels: networking
+  $plugins/filter/urlsplit.py:
+    support: core
 ###############################
 # plugins/httpapi
   $plugins/httpapi:
@@ -1073,11 +1084,14 @@ files:
     keywords:
       - jinja
       - jinja2
+  lib/ansible/utils/module_docs_fragments/:
+    support: community
   lib/ansible/utils/module_docs_fragments/acme.py:
-    support: community
     maintainers: resmo felixfontein
-  lib/ansible/utils/module_docs_fragments/xenserver.py:
+  lib/ansible/utils/module_docs_fragments/docker.py:
     support: community
+    maintainers: $team_docker
+  lib/ansible/utils/module_docs_fragments/xenserver.py:
     maintainers: bvitnik
   test/sanity/validate-modules:
     notified:
@@ -1160,7 +1174,7 @@ macros:
   team_cloudstack: resmo dpassante rhtyd
   team_cumulus: isharacomix jrrivers
   team_cyberark_conjur: jvanderhoof ryanprior
-  team_docker: akshay196 danihodovic dariko felixfontein jwitko kassiansun tbouvet
+  team_docker: akshay196 danihodovic dariko DBendit felixfontein jwitko kassiansun tbouvet
   team_extreme: bigmstone LindsayHill
   team_ipa: Nosmoht Akasurde fxfitz
   team_jboss: jairojunior wbrefvem Wolfant

@@ -545,9 +545,8 @@ def bytes_to_human(size, isbits=False, unit=None):
 def human_to_bytes(number, default_unit=None, isbits=False):
 
     '''
-    Convert number in string format into bytes (ex: '2K' => 2048) or using unit argument
-    ex:
-      human_to_bytes('10M') <=> human_to_bytes(10, 'M')
+    Convert number in string format into bytes (ex: '2K' => 2048) or using unit argument.
+    example: human_to_bytes('10M') <=> human_to_bytes(10, 'M')
     '''
     m = re.search(r'^\s*(\d*\.?\d*)\s*([A-Za-z]+)?', str(number), flags=re.IGNORECASE)
     if m is None:
@@ -710,9 +709,11 @@ class AnsibleModule(object):
                  required_if=None):
 
         '''
-        common code for quickly building an ansible module in Python
-        (although you can write modules in anything that can return JSON)
-        see library/* for examples
+        Common code for quickly building an ansible module in Python
+        (although you can write modules with anything that can return JSON).
+
+        See :ref:`developing_modules_general` for a general introduction
+        and :ref:`developing_program_flow_modules` for more detailed explanation.
         '''
 
         self._name = os.path.basename(__file__)  # initialize name until we can parse from options
@@ -2178,11 +2179,12 @@ class AnsibleModule(object):
 
     def get_bin_path(self, arg, required=False, opt_dirs=None):
         '''
-        find system executable in PATH.
-        Optional arguments:
-           - required:  if executable is not found and required is true, fail_json
-           - opt_dirs:  optional list of directories to search in addition to PATH
-        if found return full path; otherwise return None
+        Find system executable in PATH.
+
+        :param arg: The executable to find.
+        :param required: if executable is not found and required is ``True``, fail_json
+        :param opt_dirs: optional list of directories to search in addition to ``PATH``
+        :returns: if found return full path; otherwise return None
         '''
 
         bin_path = None
@@ -2194,7 +2196,7 @@ class AnsibleModule(object):
         return bin_path
 
     def boolean(self, arg):
-        ''' return a bool for the arg '''
+        '''Convert the argument to a boolean'''
         if arg is None:
             return arg
 
@@ -2603,7 +2605,7 @@ class AnsibleModule(object):
 
     def run_command(self, args, check_rc=False, close_fds=True, executable=None, data=None, binary_data=False, path_prefix=None, cwd=None,
                     use_unsafe_shell=False, prompt_regex=None, environ_update=None, umask=None, encoding='utf-8', errors='surrogate_or_strict',
-                    expand_user_and_vars=True, pass_fds=None, before_communicate_callback=None):
+                    expand_user_and_vars=True, pass_fds=None, before_communicate_callback=None, raise_timeouts=False):
         '''
         Execute a command, returns rc, stdout, and stderr.
 
@@ -2653,6 +2655,9 @@ class AnsibleModule(object):
             after ``Popen`` object will be created
             but before communicating to the process.
             (``Popen`` object will be passed to callback as a first argument)
+        :kw raise_timeouts: This is a boolean, which when True, will allow the
+            caller to deal with timeout exceptions. When false we use the previous
+            behaviour of having run_command directly call fail_json when they occur.
         :returns: A 3-tuple of return code (integer), stdout (native string),
             and stderr (native string).  On python2, stdout and stderr are both
             byte strings.  On python3, stdout and stderr are text strings converted
@@ -2826,6 +2831,12 @@ class AnsibleModule(object):
             cmd.stderr.close()
 
             rc = cmd.returncode
+        except TimeoutError as e:
+            self.log("Timeout Executing CMD:%s Timeout :%s" % (self._clean_args(args), to_native(e)))
+            if raise_timeouts:
+                raise e
+            else:
+                self.fail_json(rc=e.errno, msg=to_native(e), cmd=self._clean_args(args))
         except (OSError, IOError) as e:
             self.log("Error Executing CMD:%s Exception:%s" % (self._clean_args(args), to_native(e)))
             self.fail_json(rc=e.errno, msg=to_native(e), cmd=self._clean_args(args))
