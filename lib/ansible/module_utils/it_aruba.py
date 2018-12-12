@@ -55,6 +55,44 @@ class Response(object):
         return self.info["status"]
 
 
+def detail1(server):
+    a = "DatacenterId"  # 1
+    b = "ServerId"      # 29265
+    c = "OSTemplateId"  # 1723
+    d = "ServerStatus"  # 2 - Off, 3 - On
+    e = "Busy"          # false,
+    f = "HypervisorType"  # 4 = Smart
+    g = "Name"          # "La
+    h = "CPUQuantity"   # 1
+    i = "RAMQuantity"   # 1
+    keys = (a, b, c, d, e, f, g, h, i)
+    if all(k in server for k in keys):
+        if server[f] == 4:
+            if server[h] == 1 and server[i] == 1:
+                typ = "S"
+            elif server[h] == 1 and server[i] == 2:
+                typ = "M"
+            elif server[h] == 2 and server[i] == 4:
+                typ = "L"
+            elif server[h] == 4 and server[i] == 8:
+                typ = "X"
+            else:
+                typ = "Smart-Unknown-C" + str(server[h]) + "R" + str(server[i])
+        else:
+            typ = "H" + str(server[f]) + "C" + str(server[h]) + "R" + str(server[i])
+        det = dict(
+            DC=server[a],
+            id=server[b],
+            templateId=server[c],
+            isON=(server[d] == 3),
+            busy=server[e],
+            kind=typ
+        )
+    else:
+        det = dict()
+    return det
+
+
 class ArubaCloudAPI(object):
 
     def __init__(self, module):
