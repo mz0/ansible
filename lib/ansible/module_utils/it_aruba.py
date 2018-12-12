@@ -79,7 +79,6 @@ class ArubaCloudAPI(object):
         if xtra_data is not None:
             cmdict.update(xtra_data)
         cmd_data = json.dumps(cmdict)
-        # data = self.module.jsonify(data)
         timeout = self.module.params['timeout']
         headers = {'Content-Type': 'application/json', 'Content-Length': str(len(cmd_data))}
         resp, info = fetch_url(self.module, url, data=cmd_data, headers=headers, method=method, timeout=timeout)

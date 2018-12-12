@@ -11,6 +11,6 @@
     - it_aruba_smart:
         user: "{{ arubau }}"
         password: "{{ arubap }}"
-      register:  response
+      register:  r1
 
-    - debug: var=response
+    - debug: var=r1
