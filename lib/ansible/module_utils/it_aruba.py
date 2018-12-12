@@ -62,7 +62,7 @@ class ArubaCloudAPI(object):
         self.auser = module.params.get('user')
         self.passwd = module.params.get('password')
         self.timeout = module.params.get('timeout', 30)
-        self.tpl_url = "https://api.{0}.computing.cloud.it/WsEndUser/v2.9/WsEndUser.svc/json/{1}"
+        self.tpl_url = "https://api.dc{0}.computing.cloud.it/WsEndUser/v2.9/WsEndUser.svc/json/{1}"
 
     def _url_builder(self, dc, cmd):
         return self.tpl_url.format(dc, cmd)
@@ -94,4 +94,5 @@ class ArubaCloudAPI(object):
             user=dict(required=True),
             password=dict(no_log=True, required=True),
             timeout=dict(type='int', default=60),
+            dc=dict(type='int', default=3),
         )

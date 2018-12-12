@@ -7,10 +7,10 @@
     secrets: file=~/.ssh/aruba/ansible.ini
     acct: acct0
   tasks:
-  # - debug: var=arubau
     - it_aruba_smart:
         user: "{{ arubau }}"
         password: "{{ arubap }}"
+        dc: 1
       register:  r1
 
-    - debug: var=r1
+    - debug: var=r1.srv

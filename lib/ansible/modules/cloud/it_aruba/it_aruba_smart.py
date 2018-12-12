@@ -19,6 +19,20 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
+srv:
+    description: Aruba Cloud Smart servers
+    returned: success and no resource constraint
+    type: list
+    sample: [
+         {
+              "DC": 5,
+              "busy": false,
+              "id": 29652,
+              "isON": true,
+              "kind": "S",
+              "templateId": 448
+         }
+    ]
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -69,7 +83,7 @@ def detail(srvlist):
 def core(module):
     cmd = "GetServers"
     api = ArubaCloudAPI(module)
-    response = api.post(dc="dc1", cmd=cmd)
+    response = api.post(dc=module.params['dc'], cmd=cmd)
     status_code = response.status_code
     json = response.json
     sva = "Value"
