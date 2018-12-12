@@ -49,13 +49,13 @@ def detail(srvlist):
                 elif server[h] == 4 and server[i] == 8:
                     typ = "X"
                 else:
-                    typ = "C"+str(server[h])+"R"+str(server[i])
+                    typ = "Smart-Unknown-C"+str(server[h])+"R"+str(server[i])
             else:
                 typ = "H"+str(server[f])+"C"+str(server[h])+"R"+str(server[i])
             det = dict(
                 DC=server[a],
                 id=server[b],
-                templateId=server[b],
+                templateId=server[c],
                 isON=(server[d] == 3),
                 busy=server[e],
                 kind=typ
