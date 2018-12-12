@@ -55,7 +55,6 @@ class Response(object):
         return self.info["status"]
 
 
-
 class ArubaCloudAPI(object):
 
     def __init__(self, module):
@@ -68,17 +67,19 @@ class ArubaCloudAPI(object):
     def _url_builder(self, dc, cmd):
         return self.tpl_url.format(dc, cmd)
 
-    def send(self, method, dc, cmd, data):
+    def send(self, method, dc, cmd, xtra_data):
         url = self._url_builder(dc, cmd)
-        #data = self.module.jsonify(data)
+        cmd_data = '{{"ApplicationId": "{}", "RequestId": "{}", "SessionId": "{}", "Password": "{}", "Username": "{}"' \
+                   '}}'.format(cmd, cmd, cmd, self.passwd, self.auser)
+
+        # data = self.module.jsonify(data)
         timeout = self.module.params['timeout']
-        headers = {'Content-Type': 'application/json', 'Content-Length': str(len(data))}
-        resp, info = fetch_url(self.module, url, data=data, headers=headers, method=method, timeout=timeout)
+        headers = {'Content-Type': 'application/json', 'Content-Length': str(len(cmd_data))}
+        resp, info = fetch_url(self.module, url, data=cmd_data, headers=headers, method=method, timeout=timeout)
         return Response(resp, info)
 
-    def post(self, dc, cmd, data):
-        return self.send('POST', dc, cmd, data)
-
+    def post(self, dc, cmd, xtra_data=''):
+        return self.send('POST', dc, cmd, xtra_data)
 
     @staticmethod
     def it_aruba_argument_spec():

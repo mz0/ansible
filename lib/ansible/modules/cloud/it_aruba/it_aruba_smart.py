@@ -26,13 +26,9 @@ from ansible.module_utils.it_aruba import ArubaCloudAPI
 
 
 def core(module):
-    auser = module.params['user']
-    apassw = module.params['password']
     cmd = "GetServers"
-    cmd_data = '{{"ApplicationId": "{}", "RequestId": "{}", "SessionId": "{}", "Password": "{}", "Username": "{}"}}'\
-        .format(cmd, cmd, cmd, apassw, auser)
     api = ArubaCloudAPI(module)
-    response = api.post(dc="dc1", cmd=cmd, data=cmd_data)
+    response = api.post(dc="dc1", cmd=cmd)
     status_code = response.status_code
     json = response.json
 
