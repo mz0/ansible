@@ -69,16 +69,23 @@ class ArubaCloudAPI(object):
 
     def send(self, method, dc, cmd, xtra_data):
         url = self._url_builder(dc, cmd)
-        cmd_data = '{{"ApplicationId": "{}", "RequestId": "{}", "SessionId": "{}", "Password": "{}", "Username": "{}"' \
-                   '}}'.format(cmd, cmd, cmd, self.passwd, self.auser)
-
+        cmdict = dict(
+            ApplicationId=cmd,
+            RequestId    =cmd,
+            SessionId    =cmd,
+            Password=self.passwd,
+            Username=self.auser,
+        )
+        if xtra_data is not None:
+            cmdict.update(xtra_data)
+        cmd_data = json.dumps(cmdict)
         # data = self.module.jsonify(data)
         timeout = self.module.params['timeout']
         headers = {'Content-Type': 'application/json', 'Content-Length': str(len(cmd_data))}
         resp, info = fetch_url(self.module, url, data=cmd_data, headers=headers, method=method, timeout=timeout)
         return Response(resp, info)
 
-    def post(self, dc, cmd, xtra_data=''):
+    def post(self, dc, cmd, xtra_data=None):
         return self.send('POST', dc, cmd, xtra_data)
 
     @staticmethod
