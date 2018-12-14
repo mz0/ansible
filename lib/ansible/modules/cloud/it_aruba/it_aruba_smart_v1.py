@@ -23,7 +23,7 @@ srv:
     returned: success and no resource constraint
     type: dict
     sample: {
-              "DC": 5,
+              "dc": 5,
               "busy": false,
               "id": 29652,
               "isON": true,
@@ -48,17 +48,21 @@ class SmartVM(object):
     def __init__(self, module):
         self.api = ArubaCloudAPI(module)
         self.module = module
+        self.dc = self.module.params.pop('dc')
         self.wait = self.module.params.pop('wait', True)
         self.wait_time = self.module.params.pop('wait_time', 120)
         self.name = self.module.params.pop('name')
         self.id = self.module.params.pop('id')
+        self.isON = None
+        self.busy = False
+        self.det1 = None
 
     def get_by_id(self, server_id):
         if not server_id:
             return None
         cmd = "GetServerDetails"
         xd  = dict(ServerId=server_id)
-        response = self.api.post(self.module.params['dc'], cmd, xd)
+        response = self.api.post(self.dc, cmd, xd)
         json = response.json
         sva = 'Value'
         suc = 'Success'
@@ -69,26 +73,39 @@ class SmartVM(object):
     def get_by_name(self, name):
         if not name:
             return None
-        cmd = "GetServers"
-        response = self.api.post(self.module.params['dc'], cmd)
-        json = response.json
-        sva = 'Value'
-        suc = 'Success'
-        if response.status_code == 200 and sva in json and suc in json and json[suc]:
-            return json
+        servers = self.api.get_servers(self.dc)
+        byname = [s for s in servers if s['name'] == name]
+        if len(byname) == 1:
+            return byname[0]
+        elif len(byname) == 0:
+            self.module.fail_json(msg='VM not found by name')
+        elif len(byname) > 1:
+            self.module.fail_json(msg='This Server name is not unique! More then 1 found')
         return None
 
     def get_vm(self):
-        json_data = self.get_by_id(self.id)
-        if not json_data and self.name:
-            json_data = self.get_by_name(self.name)
-        return json_data
+        det1 = self.get_by_id(self.id)
+        if not det1 and self.name:
+            det1 = self.get_by_name(self.name)
+        z = 'dc'
+        i = 'id'
+        o = 'isON'
+        b = 'busy'
+        n = 'name'
+        keys = (z, i, o, b, n)
+        if det1 and  all(k in det1 for k in keys):
+            self.id   = det1[i]
+            self.name = det1[n]
+            self.isON = det1[o]
+            self.busy = det1[b]
+        return det1
 
     def powerOff(self, server_id):
+        if not self.isON:
+            self.module.exit_json(changed=False, srv='VM not found')
         cmd = "SetEnqueueServerPowerOff"
         xd = dict(ServerId=server_id)
-        response = self.api.post(self.module.params['dc'], cmd, xd)
-
+        response = self.api.post(self.dc, cmd, xd)
         if self.wait:
             end_time = time.time() + self.wait_time
             while time.time() < end_time:
@@ -101,13 +118,12 @@ class SmartVM(object):
     def down(self, wait):
         json_data = self.get_vm()
         if json_data:
-            if self.module.check_mode:
-                self.module.exit_json(changed=True)
-         #  if response.status_code == 200:
-         #      ?
-            self.module.fail_json(changed=False, msg='Failed to power-off VM (besides, not implemented!')
+            if self.isON:
+                self.powerOff(self.id, wait)
+            else:
+                self.module.exit_json(changed=False, srv=json_data)
         else:
-            self.module.exit_json(changed=False, msg='VM not found')
+            self.module.fail_json(changed=False, msg='VM not found')
 
 
 def core(module):

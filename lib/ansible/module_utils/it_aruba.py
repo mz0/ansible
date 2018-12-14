@@ -81,8 +81,9 @@ def detail1(server):
         else:
             typ = "H" + str(server[h]) + "C" + str(server[c]) + "R" + str(server[r])
         det = dict(
-            DC=server[z],
+            dc=server[z],
             id=server[i],
+            name=server[n],
             templateId=server[t],
             isON=(server[s] == 3),
             busy=server[b],
@@ -141,7 +142,7 @@ class ArubaCloudAPI(object):
             servers.append(detail1(server))
         return servers
 
-    def it_aruba_servers(self, dc):
+    def get_servers(self, dc):
         cmd = "GetServers"
         response = self.post(dc=dc, cmd=cmd)
         status_code = response.status_code

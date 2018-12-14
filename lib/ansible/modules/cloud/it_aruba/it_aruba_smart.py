@@ -25,7 +25,7 @@ srv:
     type: list
     sample: [
          {
-              "DC": 5,
+              "dc": 5,
               "busy": false,
               "id": 29652,
               "isON": true,
