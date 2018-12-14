@@ -36,30 +36,7 @@ srv:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.it_aruba import ArubaCloudAPI, detail1
-
-
-def detail(srvlist):
-    servers = []
-    for server in srvlist:
-        servers.append(detail1(server))
-    return servers
-
-
-def core(module):
-    cmd = "GetServers"
-    api = ArubaCloudAPI(module)
-    response = api.post(dc=module.params['dc'], cmd=cmd)
-    status_code = response.status_code
-    json = response.json
-    sva = 'Value'
-    suc = 'Success'
-    if status_code == 200 and sva in json and suc in json and json[suc]:
-        servers = detail(json[sva])
-        module.exit_json(changed=False, srv=servers)
-    else:
-        module.fail_json(msg='Error fetching facts [{0}: {1}]'.format(
-            status_code, response.json['message']))
+from ansible.module_utils.it_aruba import ArubaCloudAPI
 
 
 def main():
@@ -68,7 +45,8 @@ def main():
         supports_check_mode=False,
     )
 
-    core(module)
+    api = ArubaCloudAPI(module)
+    module.exit_json(changed=False, srv=api.it_aruba_servers(module.params['dc']))
 
 
 if __name__ == '__main__':

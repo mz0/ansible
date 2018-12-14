@@ -133,3 +133,23 @@ class ArubaCloudAPI(object):
             timeout=dict(type='int', default=60),
             dc=dict(type='int', required=True),
         )
+
+    @staticmethod
+    def detail(srvlist):
+        servers = []
+        for server in srvlist:
+            servers.append(detail1(server))
+        return servers
+
+    def it_aruba_servers(self, dc):
+        cmd = "GetServers"
+        response = self.post(dc=dc, cmd=cmd)
+        status_code = response.status_code
+        r = response.json
+        sva = 'Value'
+        suc = 'Success'
+        if status_code == 200 and sva in r and suc in r and r[suc]:
+            return self.detail(r[sva])
+        else:
+            self.module.fail_json(msg='Error fetching server list [{0}: {1}]'.format(
+                status_code, response.json['message']))
