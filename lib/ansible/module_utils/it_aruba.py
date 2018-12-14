@@ -56,36 +56,36 @@ class Response(object):
 
 
 def detail1(server):
-    a = "DatacenterId"  # 1
-    b = "ServerId"      # 29265
-    c = "OSTemplateId"  # 1723
-    d = "ServerStatus"  # 2 - Off, 3 - On
-    e = "Busy"          # false,
-    f = "HypervisorType"  # 4 = Smart
-    g = "Name"          # "La
-    h = "CPUQuantity"   # 1
-    i = "RAMQuantity"   # 1
-    keys = (a, b, c, d, e, f, g, h, i)
+    z = "DatacenterId"  # 1
+    i = "ServerId"      # 2926
+    t = "OSTemplateId"  # 1723
+    s = "ServerStatus"  # 2 - Off, 3 - On
+    b = "Busy"          # false
+    h = "HypervisorType"  # 4 = Smart
+    n = "Name"
+    c = "CPUQuantity"   # 1
+    r = "RAMQuantity"   # 1
+    keys = (z, i, t, s, b, h, n, c, r)
     if all(k in server for k in keys):
-        if server[f] == 4:
-            if server[h] == 1 and server[i] == 1:
+        if server[h] == 4:
+            if   server[c] == 1 and server[r] == 1:
                 typ = "S"
-            elif server[h] == 1 and server[i] == 2:
+            elif server[c] == 1 and server[r] == 2:
                 typ = "M"
-            elif server[h] == 2 and server[i] == 4:
+            elif server[c] == 2 and server[r] == 4:
                 typ = "L"
-            elif server[h] == 4 and server[i] == 8:
+            elif server[c] == 4 and server[r] == 8:
                 typ = "X"
             else:
-                typ = "Smart-Unknown-C" + str(server[h]) + "R" + str(server[i])
+                typ = "Smart-Unknown-C" + str(server[c]) + "R" + str(server[r])
         else:
-            typ = "H" + str(server[f]) + "C" + str(server[h]) + "R" + str(server[i])
+            typ = "H" + str(server[h]) + "C" + str(server[c]) + "R" + str(server[r])
         det = dict(
-            DC=server[a],
-            id=server[b],
-            templateId=server[c],
-            isON=(server[d] == 3),
-            busy=server[e],
+            DC=server[z],
+            id=server[i],
+            templateId=server[t],
+            isON=(server[s] == 3),
+            busy=server[b],
             kind=typ
         )
     else:
@@ -128,7 +128,6 @@ class ArubaCloudAPI(object):
     @staticmethod
     def it_aruba_argument_spec():
         return dict(
-            validate_certs=dict(type='bool', required=False, default=True),
             user=dict(required=True),
             password=dict(no_log=True, required=True),
             timeout=dict(type='int', default=60),

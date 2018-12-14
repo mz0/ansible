@@ -13,4 +13,5 @@
         dc: 1
       register:  r1
 
-    - debug: var=r1.srv
+    - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
+      loop: "{{ r1.srv }}"
