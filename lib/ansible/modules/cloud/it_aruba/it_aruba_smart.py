@@ -46,7 +46,7 @@ def main():
     )
 
     api = ArubaCloudAPI(module)
-    module.exit_json(changed=False, srv=api.it_aruba_servers(module.params['dc']))
+    module.exit_json(changed=False, srv=api.get_servers(module.params['dc']))
 
 
 if __name__ == '__main__':
