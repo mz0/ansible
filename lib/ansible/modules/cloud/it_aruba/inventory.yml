@@ -11,7 +11,20 @@
         user: "{{ arubau }}"
         password: "{{ arubap }}"
         dc: 1
-      register:  r1
-
+      register: r1
+    - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
+      loop: "{{ r1.srv }}"
+    - it_aruba_smart:
+        user: "{{ arubau }}"
+        password: "{{ arubap }}"
+        dc: 5
+      register: r1
+    - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
+      loop: "{{ r1.srv }}"
+    - it_aruba_smart:
+        user: "{{ arubau }}"
+        password: "{{ arubap }}"
+        dc: 6
+      register: r1
     - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
       loop: "{{ r1.srv }}"
