@@ -131,5 +131,5 @@ class ArubaCloudAPI(object):
             user=dict(required=True),
             password=dict(no_log=True, required=True),
             timeout=dict(type='int', default=60),
-            dc=dict(type='int', default=3),
+            dc=dict(type='int', required=True),
         )
