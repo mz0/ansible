@@ -58,8 +58,8 @@ class Response(object):
 
 def hmn(aruba_ts):
     """
-    :param aruba_ts: strig like "/Date(1544909024817+0100)/"
-    :return: Human-readable date-time "2019-01-06T15:00:00"
+    :param aruba_ts: string like "/Date(1544909024817+0100)/"
+    :return: Human-readable date-time "2018-12-15T21:23:44"
     """
     return datetime.utcfromtimestamp(int(aruba_ts[6:16])).isoformat('T')
 
