@@ -56,6 +56,14 @@ class Response(object):
         return self.info["status"]
 
 
+def hmn(aruba_ts):
+    """
+    :param aruba_ts: strig like "/Date(1544909024817+0100)/"
+    :return: Human-readable date-time "2019-01-06T15:00:00"
+    """
+    return datetime.utcfromtimestamp(int(aruba_ts[6:16])).isoformat('T')
+
+
 def detail2(server):
     z = "DatacenterId"  # 1
     i = "ServerId"      # 2926
@@ -85,7 +93,7 @@ def detail2(server):
             10: "L",
             11: "X",
         }
-        det = dict(
+        return dict(
             dc=server[z],
             id=server[i],
             name=server[n],
@@ -98,10 +106,9 @@ def detail2(server):
             MAC=server[d][0][dm],
             ip6=server[d][0][dd][0][dd6],
             ip4=server[c][ci],
-            created=server[b][6:16],
-            recharge=datetime.utcfromtimestamp(int(server[r][6:16])).isoformat('T'),
+            created=hmn(server[b]),
+            recharge=hmn(server[r]),
         )
-        return det
     else:
         return None
 
