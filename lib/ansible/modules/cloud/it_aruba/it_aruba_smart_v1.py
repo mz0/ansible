@@ -49,8 +49,8 @@ class SmartVM(object):
         self.api = ArubaCloudAPI(module)
         self.module = module
         self.dc = self.module.params.pop('dc')
-        self.wait = self.module.params.pop('wait', True)
-        self.wait_time = self.module.params.pop('wait_time', 120)
+        self.wait = self.module.params.pop('wait')
+        self.wait_time = self.module.params.pop('wait_time')
         self.name = self.module.params.pop('name')
         self.id = self.module.params.pop('id')
         self.isON = None
@@ -148,7 +148,8 @@ def main():
             state=dict(choices=['present', 'absent', 'offline', 'pristine'], default='offline'),
             name=dict(type='str'),
             id=dict(type='int', default=None),
-            wait=dict(type='bool', default=True)
+            wait=dict(type='bool', default=False),
+            wait_time=dict(type='int', default=77),
     ))
     module = AnsibleModule(
         argument_spec=argument_spec,
