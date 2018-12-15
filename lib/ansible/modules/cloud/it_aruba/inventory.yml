@@ -1,5 +1,4 @@
-- hosts: localhost
-  connection: local
+- hosts: ArubaCloud
   gather_facts: no
   vars:
     arubau: "{{ lookup('ini', 'user   section='+acct+'  '+secrets) }}"
@@ -7,24 +6,31 @@
     secrets: file=~/.ssh/aruba/ansible.ini
     acct: acct0
   tasks:
-    - it_aruba_smart:
+    - name: Get servers DC1
+      it_aruba_smart:
         user: "{{ arubau }}"
         password: "{{ arubap }}"
         dc: 1
       register: r1
-    - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
+    - name: Show servers in DC1
+      debug: msg="DC{{ item.dc }} ID:{{ item.id }} IP {{ item.ip4 }} name:{{ item.name }} recharge {{item.recharge}} IPv6 {{ item.ip6 }}"
       loop: "{{ r1.srv }}"
-    - it_aruba_smart:
+
+    - name: Get servers DC5
+      it_aruba_smart:
         user: "{{ arubau }}"
         password: "{{ arubap }}"
         dc: 5
       register: r1
-    - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
+    - name: Show servers DC5 (brief)
+      debug: msg="DC{{ item.dc }} ID:{{ item.id }} IP {{ item.ip4 }} name:{{ item.name }} recharge {{item.recharge}} size {{ item.size }}"
       loop: "{{ r1.srv }}"
-    - it_aruba_smart:
+
+    - name: Get servers DC6
+      it_aruba_smart:
         user: "{{ arubau }}"
         password: "{{ arubap }}"
         dc: 6
       register: r1
-    - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
-      loop: "{{ r1.srv }}"
+    - name: Show servers DC6 (raw)
+      debug: var=r1

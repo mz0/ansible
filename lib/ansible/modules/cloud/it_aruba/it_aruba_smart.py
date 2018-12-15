@@ -25,11 +25,12 @@ srv:
     type: list
     sample: [
          {
-              "DC": 5,
+              "dc": 5,
               "busy": false,
-              "id": 29652,
+              "id": 19652,
               "isON": true,
-              "kind": "S",
+              "name": "Lemp",
+              "size": "S",
               "templateId": 448
          }
     ]
@@ -46,7 +47,12 @@ def main():
     )
 
     api = ArubaCloudAPI(module)
-    module.exit_json(changed=False, srv=api.it_aruba_servers(module.params['dc']))
+    servers=[]
+    dc = module.params['dc']
+    for s in api.get_servers(dc):
+        servers.append(api.get_server(dc, s['id']))
+
+    module.exit_json(changed=False, srv=servers)
 
 
 if __name__ == '__main__':
