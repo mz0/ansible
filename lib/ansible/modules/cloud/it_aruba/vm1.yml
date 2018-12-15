@@ -11,9 +11,9 @@
         state: offline
         user: "{{ arubau }}"
         password: "{{ arubap }}"
-        dc: 1
-        id: 292659
-        wait: true
+        dc: 5
+        name: de1
+        wait: false
       register:  r1
 
     - name: Print result

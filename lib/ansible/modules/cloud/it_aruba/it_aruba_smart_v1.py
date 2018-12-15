@@ -103,14 +103,24 @@ class SmartVM(object):
             if self.busy is not None and not self.busy: return True
         return False
 
-    def powerOff(self, server_id):
+    def powerOff(self, server_id, wait=False):
         if self.busy is not None and self.busy and not self.waitOK():
             self.module.fail_json(msg='Server was busy, wait_time is over.')
         cmd = "SetEnqueueServerPowerOff"
         xd = dict(ServerId=server_id)
-        response = self.api.post(self.dc, cmd, xd)
-        if self.wait:
-            self.module.exit_json(changed=True, srv=response.json)  # FIXME!
+        r = self.api.post(self.dc, cmd, xd)
+        suc = 'Success'
+        if r.status_code==200 and suc in r.json and r.json[suc]:
+            pass
+        else:
+            self.module.fail_json(msg='VM turn Off error:{}'.format(r.body))
+        if not wait:
+            self.module.exit_json(changed=True, srv=self.api.get_server(self.dc, server_id))
+        else:
+            if self.waitOK():
+                self.module.exit_json(changed=True, srv=self.api.get_server(self.dc, server_id))
+            else:
+                self.module.fail_json(msg='VM turn Off wait time is over. Response was:{}'.format(r.json))
 
     def down(self, wait):
         json_data = self.get_vm()
@@ -128,20 +138,20 @@ def core(module):
     vm = SmartVM(module)
     if state == 'offline':
         vm.down(wait=vm.wait)
+    if state == 'present':
+        vm.up(wait=vm.wait)
 
 
 def main():
-    module = AnsibleModule(
-        argument_spec=dict(
-            user=dict(required=True),
-            password=dict(no_log=True, required=True),
-            timeout=dict(type='int', default=90),
-            dc=dict(type='int', required=True),
+    argument_spec = ArubaCloudAPI.it_aruba_argument_spec()
+    argument_spec.update(dict(
             state=dict(choices=['present', 'absent', 'offline', 'pristine'], default='offline'),
             name=dict(type='str'),
             id=dict(type='int', default=None),
-            wait=dict(type='bool', default=True),
-        ),
+            wait=dict(type='bool', default=True)
+    ))
+    module = AnsibleModule(
+        argument_spec=argument_spec,
         supports_check_mode=True,
     )
 
@@ -153,3 +163,24 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+'''
+powerOff(..,wait=False) =>
+"jobs": [
+                {
+                    "CreationDate": "/Date(1544909024817+0100)/",
+                    "JobId": 862231,
+                    "LastUpdateDate": "/Date(1544909024817+0100)/",
+                    "LicenseId": null,
+                    "OperationName": "StopVirtualMachineSmartVMWare",
+                    "Progress": 0,
+                    "ResourceId": null,
+                    "ResourceValue": null,
+                    "ServerId": 1265,
+                    "ServerName": "de1",
+                    "Status": 1,
+                    "UserId": 70331,
+                    "Username": "AWI-71331"
+                }
+            ],
+'''
