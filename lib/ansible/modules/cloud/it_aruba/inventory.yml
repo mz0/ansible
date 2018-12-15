@@ -1,5 +1,4 @@
-- hosts: localhost
-  connection: local
+- hosts: ArubaCloud
   gather_facts: no
   vars:
     arubau: "{{ lookup('ini', 'user   section='+acct+'  '+secrets) }}"
@@ -7,24 +6,12 @@
     secrets: file=~/.ssh/aruba/ansible.ini
     acct: acct0
   tasks:
-    - it_aruba_smart:
+    - name: Get servers
+      it_aruba_smart:
         user: "{{ arubau }}"
         password: "{{ arubap }}"
         dc: 1
       register: r1
-    - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
-      loop: "{{ r1.srv }}"
-    - it_aruba_smart:
-        user: "{{ arubau }}"
-        password: "{{ arubap }}"
-        dc: 5
-      register: r1
-    - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
-      loop: "{{ r1.srv }}"
-    - it_aruba_smart:
-        user: "{{ arubau }}"
-        password: "{{ arubap }}"
-        dc: 6
-      register: r1
-    - debug: msg="DC{{ item.DC }} ID:{{ item.id }}"
+    - name: Show servers
+      debug: msg="DC{{ item.dc }} ID:{{ item.id }}"
       loop: "{{ r1.srv }}"
