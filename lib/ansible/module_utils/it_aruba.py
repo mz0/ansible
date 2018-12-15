@@ -55,6 +55,7 @@ class Response(object):
     def status_code(self):
         return self.info["status"]
 
+
 def detail2(server):
     z = "DatacenterId"  # 1
     i = "ServerId"      # 2926
