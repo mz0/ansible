@@ -27,9 +27,10 @@ srv:
          {
               "dc": 5,
               "busy": false,
-              "id": 29652,
+              "id": 19652,
               "isON": true,
               "kind": "S",
+              "name": "Lemp",
               "templateId": 448
          }
     ]
