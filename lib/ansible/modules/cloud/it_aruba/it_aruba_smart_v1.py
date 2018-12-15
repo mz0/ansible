@@ -27,12 +27,12 @@ srv:
               "busy": false,
               "id": 29652,
               "isON": true,
-              "kind": "S",
               "image": 448,
               "ip": "192.168.2.1",
               "ipv6":"2001:DB8::1",
               "charge":"2018....11:00"
               "created":"2016....11:00"
+              "size": "S",
             }
     ]
 '''
@@ -54,8 +54,9 @@ class SmartVM(object):
         self.name = self.module.params.pop('name')
         self.id = self.module.params.pop('id')
         self.isON = None
-        self.busy = False
+        self.busy = None
         self.det1 = None
+        self.cmdQ = None
 
     def get_by_id(self, server_id):
         if not server_id:
@@ -98,11 +99,13 @@ class SmartVM(object):
             self.name = det1[n]
             self.isON = det1[o]
             self.busy = det1[b]
-        return det1
+            return det1
+        else:
+            return None
 
     def powerOff(self, server_id):
-        if not self.isON:
-            self.module.exit_json(changed=False, srv='VM not found')
+        if self.isON is not None and not self.isON:
+            self.module.exit_json(changed=False, srv='VM is already down')
         cmd = "SetEnqueueServerPowerOff"
         xd = dict(ServerId=server_id)
         response = self.api.post(self.dc, cmd, xd)

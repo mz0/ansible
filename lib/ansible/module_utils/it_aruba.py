@@ -69,17 +69,17 @@ def detail1(server):
     if all(k in server for k in keys):
         if server[h] == 4:
             if   server[c] == 1 and server[r] == 1:
-                typ = "S"
+                size = "S"
             elif server[c] == 1 and server[r] == 2:
-                typ = "M"
+                size = "M"
             elif server[c] == 2 and server[r] == 4:
-                typ = "L"
+                size = "L"
             elif server[c] == 4 and server[r] == 8:
-                typ = "X"
+                size = "X"
             else:
-                typ = "Smart-Unknown-C" + str(server[c]) + "R" + str(server[r])
+                size = "Smart-Unknown-C" + str(server[c]) + "R" + str(server[r])
         else:
-            typ = "H" + str(server[h]) + "C" + str(server[c]) + "R" + str(server[r])
+            size = "H" + str(server[h]) + "C" + str(server[c]) + "R" + str(server[r])
         det = dict(
             dc=server[z],
             id=server[i],
@@ -87,7 +87,7 @@ def detail1(server):
             templateId=server[t],
             isON=(server[s] == 3),
             busy=server[b],
-            kind=typ
+            size=size
         )
     else:
         det = dict()

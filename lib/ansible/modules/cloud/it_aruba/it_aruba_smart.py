@@ -29,8 +29,8 @@ srv:
               "busy": false,
               "id": 19652,
               "isON": true,
-              "kind": "S",
               "name": "Lemp",
+              "size": "S",
               "templateId": 448
          }
     ]
