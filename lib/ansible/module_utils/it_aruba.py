@@ -29,6 +29,7 @@
 import json
 from ansible.module_utils.urls import fetch_url
 from ansible.module_utils._text import to_text
+from datetime import datetime
 
 
 class Response(object):
@@ -53,6 +54,55 @@ class Response(object):
     @property
     def status_code(self):
         return self.info["status"]
+
+def detail2(server):
+    z = "DatacenterId"  # 1
+    i = "ServerId"      # 2926
+    n = "Name"
+    a = "ActiveJobs"    # []
+    b = "CreationDate"
+    c = "EasyCloudIPAddress"
+    ci = "Value"
+    d = "NetworkAdapters"
+    dd = "IPAddresses"
+    dd6 = "StartRangeIPv6"
+    dm = "MacAddress"
+    t = "OSTemplate"
+    ti = "Id"
+    tn = "Name"
+    r = "RenewDateSmart"
+    s = "ServerStatus"  # 2 - Off, 3 - On
+    sz = "EasyCloudPackageID" # 1
+    keys = (a, b, d, t, r, sz)
+    if all(k in server for k in keys):
+        szi = {
+            1: "S",
+            6: "M",
+            7: "L",
+            8: "X",
+            9:  "M",
+            10: "L",
+            11: "X",
+        }
+        det = dict(
+            dc=server[z],
+            id=server[i],
+            name=server[n],
+            templateId=server[t][ti],
+            tplateName=server[t][tn],
+            isON=(server[s] == 3),
+            busy=True if (len(server[a]) > 0) else False,
+            size=szi.get(server[sz]),
+            jobs=server[a],
+            MAC=server[d][0][dm],
+            ip6=server[d][0][dd][0][dd6],
+            ip4=server[c][ci],
+            created=server[b][6:16],
+            recharge=datetime.utcfromtimestamp(int(server[r][6:16])).isoformat('T'),
+        )
+        return det
+    else:
+        return None
 
 
 def detail1(server):
@@ -153,4 +203,18 @@ class ArubaCloudAPI(object):
             return self.detail(r[sva])
         else:
             self.module.fail_json(msg='Error fetching server list [{0}: {1}]'.format(
+                status_code, response.json['message']))
+
+    def get_server(self, dc, server_id):
+        cmd = "GetServerDetails"
+        xd  = dict(ServerId=server_id)
+        response = self.post(dc, cmd, xd)
+        status_code = response.status_code
+        r = response.json
+        sva = 'Value'
+        suc = 'Success'
+        if status_code == 200 and sva in r and suc in r and r[suc]:
+            return detail2(r[sva])
+        else:
+            self.module.fail_json(msg='Error fetching server details [{0}: {1}]'.format(
                 status_code, response.json['message']))

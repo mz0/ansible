@@ -61,15 +61,7 @@ class SmartVM(object):
     def get_by_id(self, server_id):
         if not server_id:
             return None
-        cmd = "GetServerDetails"
-        xd  = dict(ServerId=server_id)
-        response = self.api.post(self.dc, cmd, xd)
-        json = response.json
-        sva = 'Value'
-        suc = 'Success'
-        if response.status_code == 200 and sva in json and suc in json and json[suc]:
-            return json
-        return None
+        return self.api.get_server(self.dc, server_id)
 
     def get_by_name(self, name):
         if not name:
@@ -103,20 +95,22 @@ class SmartVM(object):
         else:
             return None
 
+    def waitOK(self):
+        end_time = time.time() + self.wait_time
+        while time.time() < end_time:
+            time.sleep(min(2, end_time - time.time()))
+            self.get_vm()
+            if self.busy is not None and not self.busy: return True
+        return False
+
     def powerOff(self, server_id):
-        if self.isON is not None and not self.isON:
-            self.module.exit_json(changed=False, srv='VM is already down')
+        if self.busy is not None and self.busy and not self.waitOK():
+            self.module.fail_json(msg='Server was busy, wait_time is over.')
         cmd = "SetEnqueueServerPowerOff"
         xd = dict(ServerId=server_id)
         response = self.api.post(self.dc, cmd, xd)
         if self.wait:
-            end_time = time.time() + self.wait_time
-            while time.time() < end_time:
-                json_data = response.json
-                if json_data['droplet']['status'] == 'active':
-                    return json_data
-                time.sleep(min(2, end_time - time.time()))
-            self.module.fail_json(msg='Power-off wait time is over.')
+            self.module.exit_json(changed=True, srv=response.json)  # FIXME!
 
     def down(self, wait):
         json_data = self.get_vm()

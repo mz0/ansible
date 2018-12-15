@@ -47,7 +47,12 @@ def main():
     )
 
     api = ArubaCloudAPI(module)
-    module.exit_json(changed=False, srv=api.get_servers(module.params['dc']))
+    servers=[]
+    dc = module.params['dc']
+    for s in api.get_servers(dc):
+        servers.append(api.get_server(dc, s['id']))
+
+    module.exit_json(changed=False, srv=servers)
 
 
 if __name__ == '__main__':
