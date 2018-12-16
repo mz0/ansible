@@ -132,12 +132,16 @@ class SmartVM(object):
             self.module.fail_json(changed=False, msg='VM not found')
 
     def createVM(self):
-        self.module.fail_json(changed=False, msg='VM {} in DC{} not found. '
-                'createVM is not implemented yet!'.format(self.name, self.dc))
+        self.module.fail_json(changed=False, msg='VM {} in DC{} not found and '
+                'createVM is not implemented yet.'.format(self.name, self.dc))
+
+    def drop(self):
+        self.module.fail_json(changed=False, msg='VM {} in DC{}. '
+                'DeleteVM not implemented yet.'.format(self.name, self.dc))
 
     def powerON(self, server_id, wait=False):
         if self.busy is not None and self.busy and not self.waitOK():
-            self.module.fail_json(msg='Server was busy, wait_time is over. Not turning ON!')
+            self.module.fail_json(msg='VM is busy. wait_time is over. Not turning ON!')
         cmd = "SetEnqueueServerStart"
         xd = dict(ServerId=server_id)
         r = self.api.post(self.dc, cmd, xd)
@@ -152,7 +156,7 @@ class SmartVM(object):
             if self.waitOK():
                 self.module.exit_json(changed=True, srv=self.api.get_server(self.dc, server_id))
             else:
-                self.module.fail_json(msg='VM turn Off wait time is over. Response was:{}'.format(r.json))
+                self.module.fail_json(msg='VM turn ON wait_time is over. Response was:{}'.format(r.json))
 
     def up(self, wait):
         json_data = self.get_vm()
@@ -165,13 +169,27 @@ class SmartVM(object):
         else:
             self.createVM()
 
+    def reinit(self, wait):
+        json_data = self.get_vm()
+        if json_data:
+            if self.module.check_mode:
+                self.module.exit_json(changed=True)
+
+
 def core(module):
     state = module.params.pop('state')
     vm = SmartVM(module)
     if state == 'offline':
         vm.down(wait=vm.wait)
-    if state == 'present':
+    elif state == 'present':
         vm.up(wait=vm.wait)
+    elif state == 'pristine':
+        vm.down(wait=True)
+        vm.reinit(wait=vm.wait)
+    elif state == 'absent':
+        vm.down(wait=True)
+        vm.drop(wait=vm.wait)
+
 
 
 def main():
