@@ -7,7 +7,7 @@
     acct: acct0
   tasks:
     - name: Ensure server is down
-      it_aruba_smart_v1:
+      it_aruba_smart_vm:
         state: offline
         user: "{{ arubau }}"
         password: "{{ arubap }}"

@@ -7,7 +7,7 @@
     acct: acct0
   tasks:
     - name: Ensure server is up
-      it_aruba_smart_v1:
+      it_aruba_smart_vm:
         state: present
         user: "{{ arubau }}"
         password: "{{ arubap }}"
