@@ -42,7 +42,8 @@ import traceback
 from ansible.module_utils._text import to_native
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.it_aruba import ArubaCloudAPI
-
+from random import SystemRandom
+from hashlib import md5
 
 class SmartVM(object):
     def __init__(self, module):
@@ -102,7 +103,7 @@ class SmartVM(object):
             if self.busy is not None and not self.busy: return True
         return False
 
-    def powerOff(self, server_id, wait=False):
+    def powerOff(self, server_id, wait=False, no_exit=False):
         if self.busy is not None and self.busy and not self.waitOK():
             self.module.fail_json(msg='Server was busy, wait_time is over.')
         cmd = "SetEnqueueServerPowerOff"
@@ -117,16 +118,18 @@ class SmartVM(object):
             self.module.exit_json(changed=True, srv=self.api.get_server(self.dc, server_id))
         else:
             if self.waitOK():
+                if no_exit: return
                 self.module.exit_json(changed=True, srv=self.api.get_server(self.dc, server_id))
             else:
                 self.module.fail_json(msg='VM turn Off wait time is over. Response was:{}'.format(r.json))
 
-    def down(self, wait):
+    def down(self, wait, no_exit=False):
         json_data = self.get_vm()
         if json_data:
             if self.isON:
-                self.powerOff(self.id, wait)
+                self.powerOff(self.id, wait, no_exit)
             else:
+                if no_exit: return
                 self.module.exit_json(changed=False, srv=json_data)
         else:
             self.module.fail_json(changed=False, msg='VM not found')
@@ -136,6 +139,7 @@ class SmartVM(object):
                 'createVM is not implemented yet.'.format(self.name, self.dc))
 
     def drop(self):
+        # cmd = "SetEnqueueServerDeletion"
         self.module.fail_json(changed=False, msg='VM {} in DC{}. '
                 'DeleteVM not implemented yet.'.format(self.name, self.dc))
 
@@ -169,11 +173,41 @@ class SmartVM(object):
         else:
             self.createVM()
 
+    @staticmethod
+    def _rnd_passwd():
+        r = SystemRandom()
+        m=md5()
+        m.update(str(r.random()))
+        return m.hexdigest()
+
     def reinit(self, wait):
         json_data = self.get_vm()
         if json_data:
             if self.module.check_mode:
                 self.module.exit_json(changed=True)
+        else:
+            self.module.fail_json("VM {} not found in DC{}. No re-init.".format(self.name, self.dc))
+        cmd = "SetEnqueueReinitializeServer"
+        initial = self._rnd_passwd()
+        xd = dict(ServerId=self.id, AdministratorPassword=initial, ConfigureIPv6=False,)
+        r = self.api.post(self.dc, cmd, xd)
+        suc = 'Success'
+        if r.status_code == 200 and suc in r.json and r.json[suc]:
+            pass
+        else:
+            self.module.fail_json(msg='VM re-init error:{}'.format(r.body))
+        if not wait:
+            srv = self.api.get_server(self.dc, self.id)
+            srv.update({"password0": initial})
+            self.module.exit_json(changed=True, srv=srv)
+        else:
+            if self.waitOK():
+                srv = self.api.get_server(self.dc, self.id)
+                srv.update({"password0": initial})
+                self.module.exit_json(changed=True, srv=srv)
+            else:
+                self.module.fail_json(msg='VM re-init wait_time is over. '
+                             'password0={} Response was:{}'.format(initial, r.json))
 
 
 def core(module):
@@ -184,12 +218,11 @@ def core(module):
     elif state == 'present':
         vm.up(wait=vm.wait)
     elif state == 'pristine':
-        vm.down(wait=True)
+        vm.down(wait=True, no_exit=True)
         vm.reinit(wait=vm.wait)
     elif state == 'absent':
         vm.down(wait=True)
         vm.drop(wait=vm.wait)
-
 
 
 def main():
