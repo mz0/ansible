@@ -63,23 +63,22 @@ class SmartVM(object):
             return None
         return self.api.get_server(self.dc, server_id)
 
-    def get_by_name(self, name):
-        if not name:
-            return None
+    def get_by_name(self):
+        n = self.name
         servers = self.api.get_servers(self.dc)
-        byname = [s for s in servers if s['name'] == name]
+        byname = [s for s in servers if s['name'] == n]
         if len(byname) == 1:
             return byname[0]
         elif len(byname) == 0:
-            self.module.fail_json(msg='VM not found by name')
+            return None
         elif len(byname) > 1:
-            self.module.fail_json(msg='This Server name is not unique! More then 1 found')
+            self.module.fail_json(msg='Server name {} is not unique in DC{}! More then 1 found'.format(n, self.dc))
         return None
 
     def get_vm(self):
         det1 = self.get_by_id(self.id)
         if not det1 and self.name:
-            det1 = self.get_by_name(self.name)
+            det1 = self.get_by_name()
         z = 'dc'
         i = 'id'
         o = 'isON'
@@ -132,6 +131,39 @@ class SmartVM(object):
         else:
             self.module.fail_json(changed=False, msg='VM not found')
 
+    def createVM(self):
+        self.module.fail_json(changed=False, msg='VM {} in DC{} not found. '
+                'createVM is not implemented yet!'.format(self.name, self.dc))
+
+    def powerON(self, server_id, wait=False):
+        if self.busy is not None and self.busy and not self.waitOK():
+            self.module.fail_json(msg='Server was busy, wait_time is over. Not turning ON!')
+        cmd = "SetEnqueueServerStart"
+        xd = dict(ServerId=server_id)
+        r = self.api.post(self.dc, cmd, xd)
+        suc = 'Success'
+        if r.status_code==200 and suc in r.json and r.json[suc]:
+            pass
+        else:
+            self.module.fail_json(msg='VM turn ON error:{}'.format(r.body))
+        if not wait:
+            self.module.exit_json(changed=True, srv=self.api.get_server(self.dc, server_id))
+        else:
+            if self.waitOK():
+                self.module.exit_json(changed=True, srv=self.api.get_server(self.dc, server_id))
+            else:
+                self.module.fail_json(msg='VM turn Off wait time is over. Response was:{}'.format(r.json))
+
+    def up(self, wait):
+        json_data = self.get_vm()
+        if json_data:
+            if self.isON is not None:
+                if self.isON:
+                    self.module.exit_json(changed=False, srv=json_data)
+                else:
+                    self.powerON(self.id, wait)
+        else:
+            self.createVM()
 
 def core(module):
     state = module.params.pop('state')
@@ -183,5 +215,24 @@ powerOff(..,wait=False) =>
                     "UserId": 70331,
                     "Username": "AWI-71331"
                 }
-            ],
+            ]
+
+powerON(..,wait=False) =>
+"jobs": [
+                {
+                    "CreationDate": "/Date(1544973491997+0100)/",
+                    "JobId": 8022656,
+                    "LastUpdateDate": "/Date(1544973491997+0100)/",
+                    "LicenseId": null,
+                    "OperationName": "StartVirtualMachineSmartVMWare",
+                    "Progress": 0,
+                    "ResourceId": null,
+                    "ResourceValue": null,
+                    "ServerId": 1265,
+                    "ServerName": "de1",
+                    "Status": 1,
+                    "UserId": 70331,
+                    "Username": "AWI-71331"
+                }
+            ]
 '''

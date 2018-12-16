@@ -1,0 +1,22 @@
+- hosts: ArubaCloud
+  gather_facts: no
+  vars:
+    arubau: "{{ lookup('ini', 'user   section='+acct+'  '+secrets) }}"
+    arubap: "{{ lookup('ini', 'passwd section='+acct+'  '+secrets) }}"
+    secrets: file=~/.ssh/aruba/ansible.ini
+    acct: acct0
+  tasks:
+    - name: Ensure server is up
+      it_aruba_smart_v1:
+        state: present
+        user: "{{ arubau }}"
+        password: "{{ arubap }}"
+        dc: 1
+        name: La
+        wait: false
+        wait_time: 90
+        timeout: 12
+      register:  r1
+
+    - name: Print result
+      debug: var=r1
