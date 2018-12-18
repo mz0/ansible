@@ -5,8 +5,9 @@
     arubap: "{{ lookup('ini', 'passwd section='+acct+'  '+secrets) }}"
     secrets: file=~/.ssh/aruba/ansible.ini
     acct: acct0
+    wait_minutes: 20
   tasks:
-    - name: Ensure server is like new - reinit (re-image) from current template - ETA 3-4 minutes
+    - name: Ensure server is like new - reinit (re-image) from current template - ETA 3-{{wait_minutes}} minutes
       it_aruba_smart_vm:
         state: pristine
         user: "{{ arubau }}"
@@ -14,9 +15,35 @@
         dc: 1
         name: La
         wait: true
-        wait_time: 300
+        wait_time: "{{ 60 * wait_minutes }}"
         timeout: 12
       register:  r1
 
-    - name: Print result
+    - name: print result
       debug: var=r1
+
+    - name: Add VM to in-memory (dynamic) inventory
+      add_host:
+        name: do1
+        groups: dohosts
+        ansible_ssh_host: "{{ r1.srv.ip4 }}"
+        ansible_ssh_pass: "{{ r1.srv.password0 }}"
+        ansible_ssh_user: root
+        add_ipv6:         "{{ r1.srv.ip6 }}" # FIXME grab prefix too
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+      changed_when: false
+
+    - name: Delete old SSH host {{ r1.srv.ip4 }} key
+      shell: "ssh-keygen -R {{ r1.srv.ip4 }}"
+      changed_when: false
+
+- hosts: dohosts #TODO ensure StrictHostKeyChecking=yes
+  gather_facts: no
+  vars:
+    do_ssh_pub_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+  tasks:
+    - name: Add SSH pubkey to ~root/.ssh/authorized_keys
+      authorized_key: user=root state=present key={{ do_ssh_pub_key }}
+    - name: Disable root password
+      user: name=root password='!'
+    # FIXME restore IPv6 in /etc/network/interfaces
