@@ -4,7 +4,7 @@
 # still belong to the author of the module, and may assign their own license
 # to the complete work.
 #
-# Copyright (c), Ansible Project 2018
+# Copyright: (c) 2018 Mark Zhitomirski <marcuzero0gmail.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification,

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright: Ansible Project
+# Copyright: (c) 2018 Mark Zhitomirski <marcuzero0gmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
@@ -22,19 +22,23 @@ srv:
     description: Aruba Cloud Smart server create(view)/delete/re-init
     returned: success and no resource constraint
     type: dict
-    sample: {
-              "dc": 5,
+    sample: "srv": {
+              "MAC": "00:50:56:9e:3c:50",
               "busy": false,
+              "created": "2018-04-04T11:40:04",
+              "dc": 1,
               "id": 29652,
+              "ip4": "192.168.2.1",
+              "ip6": "2001:0DB8:0000:900c:0000:0000:0000:0001",
               "isON": true,
-              "image": 448,
-              "ip": "192.168.2.1",
-              "ipv6":"2001:DB8::1",
-              "charge":"2018....11:00"
-              "created":"2016....11:00"
+              "jobs": [],
+              "name": "Lab",
+              "password0": "5788171b7b6b2b31d80289ad812a6990",
+              "recharge": "2018-12-30T11:00:00",
               "size": "S",
+              "templateId": 1723,
+              "tplateName": "debian8_x64_1_0"
             }
-    ]
 '''
 
 import time
