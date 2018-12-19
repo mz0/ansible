@@ -129,7 +129,7 @@ RETURN = r'''
 role_name:
     description: Name of local role
     returned: always
-    type: string
+    type: str
 role_id:
     description: ESXi generated local role id
     returned: always
@@ -146,7 +146,7 @@ privileges_previous:
 local_role_name:
     description: Name of local role
     returned: always
-    type: string
+    type: str
 new_privileges:
     description: List of privileges
     returned: always
