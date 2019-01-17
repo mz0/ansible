@@ -17,7 +17,15 @@ This document is part of a collection on porting. The complete list of porting g
 Playbook
 ========
 
-No notable changes.
+Distribution Facts
+------------------
+
+The information returned for the ``ansible_distribution_*`` group of facts may have changed
+slightly.  Ansible 2.8 uses a new backend library for information about distributions: `nir0s/distro <https://github.com/nir0s/distro>`_. This library runs on Python-3.8 and fixes many bugs, including correcting release and version names.
+
+The two facts used in playbooks most often, ``ansible_distribution`` and ``ansible_distribution_major_version``, should not change. If you discover a change in these facts, please file a bug so we can address the
+difference.  However, other facts like ``ansible_distribution_release`` and
+``ansible_distribution_version`` may change as erroneous information gets corrected.
 
 
 Command Line
@@ -148,6 +156,21 @@ Plugins
 
 * Order of enabled inventory plugins (:ref:`INVENTORY_ENABLED`) has been updated, :ref:`auto <auto_inventory>` is now before :ref:`yaml <yaml_inventory>` and :ref:`ini <ini_inventory>`.
 
+* The private ``_options`` attribute has been removed from the ``CallbackBase`` class of callback
+  plugins.  If you have a third-party callback plugin which needs to access the command line arguments,
+  use code like the following instead of trying to use ``self._options``:
+
+  .. code-block:: python
+
+     from ansible import context
+     [...]
+     tags = context.CLIARGS['tags']
+
+  ``context.CLIARGS`` is a read-only dictionary so normal dictionary retrieval methods like
+  ``CLIARGS.get('tags')`` and ``CLIARGS['tags']`` work as expected but you won't be able to modify
+  the cli arguments at all.
+
+
 Porting custom scripts
 ======================
 
@@ -155,7 +178,7 @@ Display class
 -------------
 
 As of Ansible 2.8, the ``Display`` class is now a "singleton". Instead of using ``__main__.display`` each file should
-import and instantiate ``ansible.utils.display.Display`` on it's own.
+import and instantiate ``ansible.utils.display.Display`` on its own.
 
 **OLD** In Ansible 2.7 (and earlier) the following was used to access the ``display`` object:
 

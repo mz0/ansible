@@ -66,7 +66,7 @@ options:
               check out Zabbix API documentation U(https://www.zabbix.com/documentation/3.4/manual/api/reference/action/object#action_filter_condition)
         suboptions:
             type:
-                description: Type (label) of the condition
+                description: Type (label) of the condition.
                 choices:
                     # trigger
                     - host_group
@@ -105,18 +105,19 @@ options:
                 description:
                     - Value to compare with.
                     - When I(type) is set to C(discovery_status), the choices
-                      are C(up), C(down), C(discovered), C(lost)
+                      are C(up), C(down), C(discovered), C(lost).
                     - When I(type) is set to C(discovery_object), the choices
-                      are C(host), C(service)
+                      are C(host), C(service).
                     - When I(type) is set to C(event_type), the choices
                       are C(item in not supported state), C(item in normal state),
                       C(LLD rule in not supported state),
-                      C(LLD rule in normal state), C(trigger in unknown state), C(trigger in normal state)
+                      C(LLD rule in normal state), C(trigger in unknown state), C(trigger in normal state).
                     - Besides the above options, this is usualy either the name
                       of the object or a string to compare with.
             operator:
                 description:
                     - Condition operator.
+                    - When I(type) is set to C(time_period), the choices are C(in), C(not in).
                 choices:
                     - '='
                     - '<>'
@@ -211,6 +212,20 @@ options:
             media_type:
                 description:
                     - Media type that will be used to send the message.
+            host_groups:
+                type: list
+                description:
+                    - List of host groups host should be added to.
+                    - Required when I(type=add_to_host_group) or I(type=remove_from_host_group).
+            templates:
+                type: list
+                description:
+                    - List of templates host should be linked to.
+                    - Required when I(type=link_to_template) or I(type=unlink_from_template).
+            inventory:
+                description:
+                    - Host inventory mode.
+                    - Required when I(type=set_host_inventory_mode).
             command_type:
                 description:
                     - Type of operation command.
@@ -228,7 +243,7 @@ options:
             execute_on:
                 description:
                     - Target on which the custom script operation command will be executed.
-                    - Required when I(type=remote_command) and I(command_type=custom_script)
+                    - Required when I(type=remote_command) and I(command_type=custom_script).
                 choices:
                     - agent
                     - server
@@ -236,53 +251,54 @@ options:
             run_on_groups:
                 description:
                     - Host groups to run remote commands on.
-                    - Required when I(type=remote_command) if I(run_on_hosts) is not set
+                    - Required when I(type=remote_command) if I(run_on_hosts) is not set.
             run_on_hosts:
                 description:
-                    - Hosts to run remote commands on
-                    - Required when I(type=remote_command) if I(run_on_groups) is not set
+                    - Hosts to run remote commands on.
+                    - Required when I(type=remote_command) if I(run_on_groups) is not set.
+                    - If set to 0 the command will be run on the current host.
             ssh_auth_type:
                 description:
                     - Authentication method used for SSH commands.
-                    - Required when I(type=remote_command) and I(command_type=ssh)
+                    - Required when I(type=remote_command) and I(command_type=ssh).
                 choices:
                     - password
                     - public_key
             ssh_privatekey_file:
                 description:
                     - Name of the private key file used for SSH commands with public key authentication.
-                    - Required when I(type=remote_command) and I(command_type=ssh)
+                    - Required when I(type=remote_command) and I(command_type=ssh).
             ssh_publickey_file:
                 description:
                     - Name of the public key file used for SSH commands with public key authentication.
-                    - Required when I(type=remote_command) and I(command_type=ssh)
+                    - Required when I(type=remote_command) and I(command_type=ssh).
             username:
                 description:
                     - User name used for authentication.
-                    - Required when I(type=remote_command) and I(command_type in [ssh, telnet])
+                    - Required when I(type=remote_command) and I(command_type in [ssh, telnet]).
             password:
                 description:
                     - Password used for authentication.
-                    - Required when I(type=remote_command) and I(command_type in [ssh, telnet])
+                    - Required when I(type=remote_command) and I(command_type in [ssh, telnet]).
             port:
                 description:
                     - Port number used for authentication.
-                    - Required when I(type=remote_command) and I(command_type in [ssh, telnet])
+                    - Required when I(type=remote_command) and I(command_type in [ssh, telnet]).
             script_name:
                 description:
                     - The name of script used for global script commands.
-                    - Required when I(type=remote_command) and I(command_type=global_script)
+                    - Required when I(type=remote_command) and I(command_type=global_script).
     recovery_operations:
         type: list
         description:
-            - List of recovery operations
-            - C(Suboptions) are the same as for I(operations)
+            - List of recovery operations.
+            - C(Suboptions) are the same as for I(operations).
             - Works only with >= Zabbix 3.2
     acknowledge_operations:
         type: list
         description:
-            - List of acknowledge operations
-            - C(Suboptions) are the same as for I(operations)
+            - List of acknowledge operations.
+            - C(Suboptions) are the same as for I(operations).
             - Works only with >= Zabbix 3.4
 
 notes:
@@ -883,7 +899,7 @@ class Operations(object):
             operation: operation to construct the message user
 
         Returns:
-            list: constructed operation message user or None if oprtation not found
+            list: constructed operation message user or None if operation not found
         """
         if operation.get('send_to_users') is None:
             return None
@@ -1012,7 +1028,7 @@ class Operations(object):
         return {'inventory_mode': operation.get('inventory')}
 
     def construct_the_data(self, operations):
-        """Construct the oprtation data using helper methods.
+        """Construct the operation data using helper methods.
 
         Args:
             operation: operation to construct

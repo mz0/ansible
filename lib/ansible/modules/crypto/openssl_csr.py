@@ -456,7 +456,18 @@ class CertificateSigningRequest(crypto_utils.OpenSSLObject):
                 return set(current) == set(expected) and usages_ext[0].get_critical() == critical
 
         def _check_keyUsage(extensions):
-            return _check_keyUsage_(extensions, b'keyUsage', self.keyUsage, self.keyUsage_critical)
+            usages_ext = [ext for ext in extensions if ext.get_short_name() == b'keyUsage']
+            if (not usages_ext and self.keyUsage) or (usages_ext and not self.keyUsage):
+                return False
+            elif not usages_ext and not self.keyUsage:
+                return True
+            else:
+                # OpenSSL._util.lib.OBJ_txt2nid() always returns 0 for all keyUsage values
+                # (since keyUsage has a fixed bitfield for these values and is not extensible).
+                # Therefore, we create an extension for the wanted values, and compare the
+                # data of the extensions (which is the serialized bitfield).
+                expected_ext = crypto.X509Extension(b"keyUsage", False, ', '.join(self.keyUsage).encode('ascii'))
+                return usages_ext[0].get_data() == expected_ext.get_data() and usages_ext[0].get_critical() == self.keyUsage_critical
 
         def _check_extenededKeyUsage(extensions):
             return _check_keyUsage_(extensions, b'extendedKeyUsage', self.extendedKeyUsage, self.extendedKeyUsage_critical)
@@ -533,8 +544,8 @@ def main():
             subjectAltName_critical=dict(aliases=['subject_alt_name_critical'], default=False, type='bool'),
             keyUsage=dict(aliases=['key_usage'], type='list', elements='str'),
             keyUsage_critical=dict(aliases=['key_usage_critical'], default=False, type='bool'),
-            extendedKeyUsage=dict(aliases=['extKeyUsage', 'extended_key_usage'], type='list'),
-            extendedKeyUsage_critical=dict(aliases=['extKeyUsage_critical', 'extended_key_usage_critical'], default=False, type='bool', elements='str'),
+            extendedKeyUsage=dict(aliases=['extKeyUsage', 'extended_key_usage'], type='list', elements='str'),
+            extendedKeyUsage_critical=dict(aliases=['extKeyUsage_critical', 'extended_key_usage_critical'], default=False, type='bool'),
             basicConstraints=dict(aliases=['basic_constraints'], type='list', elements='str'),
             basicConstraints_critical=dict(aliases=['basic_constraints_critical'], default=False, type='bool'),
             ocspMustStaple=dict(aliases=['ocsp_must_staple'], default=False, type='bool'),
@@ -552,7 +563,7 @@ def main():
     except AttributeError:
         module.fail_json(msg='You need to have PyOpenSSL>=0.15 to generate CSRs')
 
-    base_dir = os.path.dirname(module.params['path'])
+    base_dir = os.path.dirname(module.params['path']) or '.'
     if not os.path.isdir(base_dir):
         module.fail_json(name=base_dir, msg='The directory %s does not exist or the file is not a directory' % base_dir)
 

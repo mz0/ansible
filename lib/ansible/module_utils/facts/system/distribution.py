@@ -94,6 +94,8 @@ class DistributionFiles:
         'Archlinux': 'Arch Linux'
     }
 
+    STRIP_QUOTES = r'\'\"\\'
+
     def __init__(self, module):
         self.module = module
 
@@ -110,6 +112,7 @@ class DistributionFiles:
 
     def _parse_dist_file(self, name, dist_file_content, path, collected_facts):
         dist_file_dict = {}
+        dist_file_content = dist_file_content.strip(DistributionFiles.STRIP_QUOTES)
         if name in self.SEARCH_STRING:
             # look for the distribution string in the data and replace according to RELEASE_NAME_MAP
             # only the distribution name is set, the version is assumed to be correct from distro.linux_distribution()
@@ -322,9 +325,14 @@ class DistributionFiles:
         elif 'SteamOS' in data:
             debian_facts['distribution'] = 'SteamOS'
             # nothing else to do, SteamOS gets correct info from python functions
+        elif path == '/etc/lsb-release' and 'Kali' in data:
+            debian_facts['distribution'] = 'Kali'
+            release = re.search('DISTRIB_RELEASE=(.*)', data)
+            if release:
+                debian_facts['distribution_release'] = release.groups()[0]
         elif 'Devuan' in data:
             debian_facts['distribution'] = 'Devuan'
-            release = re.search(r"PRETTY_NAME=[^(]+ \(?([^)]+?)\)", data)
+            release = re.search(r"PRETTY_NAME=\"?[^(\"]+ \(?([^) \"]+)\)?", data)
             if release:
                 debian_facts['distribution_release'] = release.groups()[0]
             version = re.search(r"VERSION_ID=\"(.*)\"", data)
@@ -446,7 +454,7 @@ class Distribution(object):
                                 'Ascendos', 'CloudLinux', 'PSBM', 'OracleLinux', 'OVS',
                                 'OEL', 'Amazon', 'Virtuozzo', 'XenServer', 'Alibaba'],
                      'Debian': ['Debian', 'Ubuntu', 'Raspbian', 'Neon', 'KDE neon',
-                                'Linux Mint', 'SteamOS', 'Devuan'],
+                                'Linux Mint', 'SteamOS', 'Devuan', 'Kali'],
                      'Suse': ['SuSE', 'SLES', 'SLED', 'openSUSE', 'openSUSE Tumbleweed',
                               'SLES_SAP', 'SUSE_LINUX', 'openSUSE Leap'],
                      'Archlinux': ['Archlinux', 'Antergos', 'Manjaro'],

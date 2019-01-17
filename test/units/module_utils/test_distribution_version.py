@@ -510,6 +510,26 @@ BUG_REPORT_URL="https://bugs.devuan.org/"
         }
     },
     {
+        'name': "Devuan",
+        'input': {
+            '/etc/os-release': """PRETTY_NAME="Devuan GNU/Linux ascii"
+NAME="Devuan GNU/Linux"
+ID=devuan
+HOME_URL="https://www.devuan.org/"
+SUPPORT_URL="https://devuan.org/os/community"
+BUG_REPORT_URL="https://bugs.devuan.org/"
+"""
+        },
+        'platform.dist': ('', '', ''),
+        'result': {
+            'distribution': u'Devuan',
+            'distribution_major_version': u'NA',
+            'distribution_release': u'ascii',
+            'os_family': 'Debian',
+            'distribution_version': u'NA'
+        }
+    },
+    {
         "platform.dist": [
             "Ubuntu",
             "16.04",
@@ -600,6 +620,31 @@ VERSION_ID="12.04"
                    'distribution_release': u'precise',
                    "os_family": "Debian",
                    'distribution_version': u'12.04'}
+    },
+    {
+        'name': 'Kali 2019.1',
+        'input': {
+            '/etc/os-release': ("PRETTY_NAME=\"Kali GNU/Linux Rolling\"\nNAME=\"Kali GNU/Linux\"\nID=kali\nVERSION=\"2019.1\"\n"
+                                "VERSION_ID=\"2019.1\"\nID_LIKE=debian\nANSI_COLOR=\"1;31\"\nHOME_URL=\"https://www.kali.org/\"\n"
+                                "SUPPORT_URL=\"https://forums.kali.org/\"\nBUG_REPORT_URL=\"https://bugs.kali.org/\"\n"),
+            '/etc/lsb-release': ("DISTRIB_ID=Kali\nDISTRIB_RELEASE=kali-rolling\nDISTRIB_CODENAME=kali-rolling\n"
+                                 "DISTRIB_DESCRIPTION=\"Kali GNU/Linux Rolling\"\n"),
+            '/usr/lib/os-release': ("PRETTY_NAME=\"Kali GNU/Linux Rolling\"\nNAME=\"Kali GNU/Linux\"\nID=kali\nVERSION=\"2019.1\"\n"
+                                    "VERSION_ID=\"2019.1\"\nID_LIKE=debian\nANSI_COLOR=\"1;31\"\nHOME_URL=\"https://www.kali.org/\"\n"
+                                    "SUPPORT_URL=\"https://forums.kali.org/\"\nBUG_REPORT_URL=\"https://bugs.kali.org/\"\n")
+        },
+        'platform.dist': [
+            'kali',
+            '2019.1',
+            ''
+        ],
+        'result': {
+            'distribution': 'Kali',
+            'distribution_version': '2019.1',
+            'distribution_release': 'kali-rolling',
+            'distribution_major_version': '2019',
+            'os_family': 'Debian'
+        }
     },
     {
         "platform.dist": [

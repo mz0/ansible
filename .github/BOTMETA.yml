@@ -87,8 +87,12 @@ files:
   $modules/cloud/amazon/iam_group.py: willthames
   $modules/cloud/amazon/iam_managed_policy.py: willthames
   $modules/cloud/amazon/iam_policy.py: $team_ansible
+  $modules/cloud/amazon/rds.py:
+    ignored: bpennypacker
   $modules/cloud/amazon/rds_param_group.py: scottanderson42
   $modules/cloud/amazon/rds_subnet_group.py: scottanderson42
+  $modules/cloud/amazon/route53.py:
+    ignored: bpennypacker
   $modules/cloud/amazon/route53_health_check.py: willthames
   $modules/cloud/amazon/sns.py: willthames
   $modules/cloud/amazon/sns_topic.py: willthames
@@ -99,7 +103,12 @@ files:
   $modules/cloud/azure/azure_rm_dnsrecordset.py:
     ignored: ozboms
   $modules/cloud/centurylink/: clc-runner
-  $modules/cloud/cloudstack/: $team_cloudstack
+  $modules/cloud/cloudscale/:
+    maintainers: $team_cloudscale
+    labels: cloud
+  $modules/cloud/cloudstack/:
+    maintainers: $team_cloudstack
+    labels: cloudstack
   $modules/cloud/digital_ocean/: BondAnthony
   $modules/cloud/digital_ocean/digital_ocean.py: alukovenko
   $modules/cloud/digital_ocean/digital_ocean_domain.py: alukovenko
@@ -108,6 +117,7 @@ files:
   $modules/cloud/docker/:
     ignored: ThomasSteinbach
     maintainers: $team_docker
+    supershipit: felixfontein
   $modules/cloud/docker/docker_network.py: olsaki
   $modules/cloud/google/:
     supershipit: $team_google
@@ -138,7 +148,9 @@ files:
   $modules/cloud/vmware/vmware_host.py: dagwieers
   $modules/cloud/vmware/vmware_vm_shell.py: chrrrles
   $modules/cloud/vmware/_vsphere_guest.py: dagwieers
-  $modules/cloud/vultr/: $team_vultr
+  $modules/cloud/vultr/:
+    maintainers: $team_vultr
+    labels: cloud
   $modules/cloud/webfaction/: quentinsf
   $modules/cloud/xenserver/xenserver_guest.py: bvitnik
   $modules/clustering/k8s/:
@@ -170,6 +182,8 @@ files:
   $modules/files/file.py: $team_ansible
   $modules/files/find.py: $team_ansible
   $modules/files/lineinfile.py: $team_ansible samdoran
+  $modules/files/stat.py:
+    ignored: bpennypacker
   $modules/files/synchronize.py: $team_ansible
   $modules/files/template.py: $team_ansible
   $modules/files/unarchive.py:
@@ -190,11 +204,15 @@ files:
     maintainers: $team_ansible
   $modules/inventory/group_by.py: $team_ansible
   $modules/messaging/rabbitmq/: $team_rabbitmq
+  $modules/monitoring/airbrake_deployment.py:
+    ignored: bpennypacker
   $modules/monitoring/datadog_event.py:
     ignored: arturaz
   $modules/monitoring/logentries.py:
     ignored: ivanvanderbyl
   $modules/monitoring/monit.py: brian-brazil
+  $modules/monitoring/pagerduty.py:
+    ignored: bpennypacker
   $modules/monitoring/zabbix/: eikef D3DeFi
   $modules/net_tools/basics/get_url.py: ptux
   $modules/net_tools/basics/slurp.py: $team_ansible
@@ -324,6 +342,9 @@ files:
     labels: pure_storage
   $modules/storage/glusterfs/: devyanikota
   $modules/storage/ibm/: tzurE
+  $modules/system/aix: &aix
+    labels: aix
+    maintainers: $team_aix
   $modules/system/alternatives.py:
     ignored: DavidWittman
   $modules/system/at.py: $team_ansible
@@ -333,6 +354,7 @@ files:
   $modules/system/gconftool2.py: Akasurde
   $modules/system/group.py: $team_ansible
   $modules/system/interfaces_file.py: obourdon
+  $modules/system/mksysb.py: *aix
   $modules/system/modprobe.py:
     ignored: stygstra
   $modules/system/mount.py:
@@ -399,7 +421,9 @@ files:
     labels:
       - cloud
     support: community
-  contrib/inventory/docker: $team_docker
+  contrib/inventory/docker:
+    maintainers: $team_docker
+    supershipit: felixfontein
   contrib/inventory/linode:
     keywords:
       - linode dynamic inventory script
@@ -481,6 +505,36 @@ files:
     maintainers: resmo felixfontein
   $module_utils/basic.py:
     support: core
+  $module_utils/urls.py:
+    support: core
+  $module_utils/six:
+    support: core
+  $module_utils/common:
+    support: core
+  $module_utils/compat:
+    support: core
+  $module_utils/_text.py:
+    support: core
+  $module_utils/parsing:
+    support: core
+  $module_utils/splitter.py:
+    support: core
+  $module_utils/yumdnf.py:
+    support: core
+  $module_utils/ansible_release.py:
+    support: core
+  $module_utils/distro:
+    support: core
+  $module_utils/ismount.py:
+    support: core
+  $module_utils/json_utils.py:
+    support: core
+  $module_utils/pycompat24.py:
+    support: core
+  $module_utils/service.py:
+    support: core
+  $module_utils/cloudscale.py:
+    maintainers: $team_cloudscale
   $module_utils/cloudstack.py:
     maintainers: $team_cloudstack
     labels: cloudstack
@@ -494,6 +548,7 @@ files:
       - windows
   $module_utils/docker_common.py:
     maintainers: $team_docker
+    supershipit: felixfontein
   $module_utils/ec2.py:
     support: core
     labels:
@@ -501,6 +556,8 @@ files:
       - cloud
   $module_utils/facts:
     support: core
+  $module_utils/facts/hardware/aix.py: *aix
+  $module_utils/facts/network/aix.py: *aix
   $module_utils/gcp_utils.py:
     maintainers: $team_google
     supershipit: $team_google
@@ -896,6 +953,7 @@ files:
   $plugins/connection/docker.py:
     support: community
     maintainers: $team_docker
+    supershipit: felixfontein
   $plugins/connection/httpapi.py:
     support: network
     maintainers: $team_networking
@@ -1100,19 +1158,33 @@ files:
 ##############################
 # other lib
 
+  lib/ansible/executor/powershell:
+    labels:
+    - windows
+    maintainers: $team_windows_core
+    support: core
   lib/ansible/template:
     keywords:
       - jinja
       - jinja2
   lib/ansible/utils/module_docs_fragments/:
     support: community
+  lib/ansible/utils/module_docs_fragments/aci.py: *aci
   lib/ansible/utils/module_docs_fragments/acme.py:
     maintainers: resmo felixfontein
   lib/ansible/utils/module_docs_fragments/docker.py:
     support: community
     maintainers: $team_docker
+    supershipit: felixfontein
+  lib/ansible/utils/module_docs_fragments/mso.py: *aci
   lib/ansible/utils/module_docs_fragments/xenserver.py:
     maintainers: bvitnik
+  lib/ansible/utils/module_docs_fragments/cloudstack.py:
+    maintainers: $team_cloudstack
+    labels: cloudstack
+  lib/ansible/utils/module_docs_fragments/vultr.py:
+    maintainers: $team_vultr
+    labels: cloud
   test/sanity/validate-modules:
     notified:
       - mattclay
@@ -1146,12 +1218,21 @@ files:
   test/utils/shippable/:
     notified: mattclay
   test/integration/targets/aci: *aci
-  test/integration/targets/docker: $team_docker
+  test/integration/targets/aix: *aix
+  test/integration/targets/cloudscale:
+    maintainers: $team_cloudscale
+    labels: cloud
+  test/integration/targets/cs_:
+    maintainers: $team_cloudstack
+    labels: cloudstack
+  test/integration/targets/docker:
+    maintainers: $team_docker
+    supershipit: felixfontein
   test/integration/targets/gcp:
     maintainers: $team_google
     supershipit: $team_google
   test/integration/targets/meraki: *meraki
-  test/integration/targets/msc: *aci
+  test/integration/targets/mso: *aci
   test/integration/targets/nxos:
     maintainers: $team_nxos
     labels:
@@ -1164,12 +1245,17 @@ files:
     maintainers: $team_ucs
     labels:
       - remote_management
+  test/integration/targets/vultr:
+    maintainers: $team_vultr
+    labels: cloud
   test/legacy/:
     notified: mattclay
   test/legacy/scaleway:
     <<: *scaleway
     support: community
-  test/units/modules/cloud/docker: $team_docker
+  test/units/modules/cloud/docker:
+    maintainers: $team_docker
+    supershipit: felixfontein
   test/units/modules/network:
     maintainers: $team_networking
     labels: networking
@@ -1190,9 +1276,11 @@ macros:
   modules: lib/ansible/modules
   plugins: lib/ansible/plugins
   team_aci: brunocalogero dagwieers jmcgill298 schunduri
+  team_aix: dagwieers flynn1973 gforster kairoaraujo molekuul MorrisA
   team_ansible: []
   team_avi: ericsysmin grastogi23 khaltore
   team_azure: haroldwongms nitzmahone trstringer yuwzho xscript zikalino
+  team_cloudscale: gaudenz resmo
   team_cloudstack: resmo dpassante rhtyd
   team_cumulus: isharacomix jrrivers
   team_cyberark_conjur: jvanderhoof ryanprior
