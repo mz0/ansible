@@ -288,7 +288,10 @@ files:
   $modules/network/system/: $team_networking
   $modules/network/voss/: $team_extreme
   $modules/network/vyos/: Qalthos samdoran NilashishC
-  $modules/notification/_osx_say.py: $team_ansible
+  $modules/notification/_osx_say.py: &macos
+    ignored: frenck
+    labels: macos
+    maintainers: $team_macos
   $modules/notification/rocketchat.py:
     ignored: ramondelafuente
     maintainers: Deepakkothandan
@@ -309,6 +312,9 @@ files:
     ignored: bleader
     labels: bsd
     maintainers: $team_bsd
+  $modules/packaging/os/homebrew.py: *macos
+  $modules/packaging/os/homebrew_: *macos
+  $modules/packaging/os/macports.py: *macos
   $modules/packaging/os/package.py: $team_ansible
   $modules/packaging/os/pacman.py:
     ignored: elasticdog
@@ -346,6 +352,9 @@ files:
   $modules/source_control/git.py: $team_ansible
   $modules/source_control/github_key.py:
     ignored: erydo
+  $modules/source_control/gitlab_: &gitlab
+    labels: gitlab
+    maintainers: $team_gitlab
   $modules/storage/infinidat/: GR360RY vmalloc
   $modules/storage/netapp/: $team_netapp
   $modules/storage/purestorage/:
@@ -374,9 +383,7 @@ files:
     maintainers: $team_ansible jtyr
     ignored: skvidal
   $modules/system/ohai.py: $team_ansible
-  $modules/system/osx_defaults.py:
-    ignored: frenck
-    maintainers: $team_ansible
+  $modules/system/osx_defaults.py: *macos
   $modules/system/pam_limits.py:
     ignored: usawa
     maintainers: giovannisciortino
@@ -571,6 +578,7 @@ files:
   $module_utils/facts:
     support: core
   $module_utils/facts/hardware/aix.py: *aix
+  $module_utils/facts/hardware/darwin.py: *macos
   $module_utils/facts/hardware/dragonfly.py: *bsd
   $module_utils/facts/hardware/freebsd.py: *bsd
   $module_utils/facts/hardware/hpux.py: *hpux
@@ -578,6 +586,7 @@ files:
   $module_utils/facts/hardware/openbsd.py: *bsd
   $module_utils/facts/hardware/sunos.py: *solaris
   $module_utils/facts/network/aix.py: *aix
+  $module_utils/facts/network/darwin.py: *macos
   $module_utils/facts/network/dragonfly.py: *bsd
   $module_utils/facts/network/freebsd.py: *bsd
   $module_utils/facts/network/generic_bsd.py: *bsd
@@ -594,6 +603,7 @@ files:
   $module_utils/gcp_utils.py:
     maintainers: $team_google
     supershipit: $team_google
+  $module_utils/gitlab.py: *gitlab
   $module_utils/ipa.py:
     maintainers: $team_ipa
   $module_utils/k8s:
@@ -924,6 +934,7 @@ files:
     support: core
   $plugins/callback/oneline:
     support: core
+  $plugins/callback/osx_say.py: *macos
   $plugins/callback/profile:
     support: core
   $plugins/callback/stderr.py:
@@ -1013,6 +1024,28 @@ files:
     maintainers: $team_windows_core
     labels:
       - windows
+###############################
+# plugins/doc_fragments
+  $plugins/doc_fragments/:
+    support: community
+  $plugins/doc_fragments/__init__.py:
+    support: core
+  $plugins/doc_fragments/aci.py: *aci
+  $plugins/doc_fragments/acme.py:
+    maintainers: resmo felixfontein
+  $plugins/doc_fragments/cloudstack.py:
+    maintainers: $team_cloudstack
+    labels: cloudstack
+  $plugins/doc_fragments/docker.py:
+    support: community
+    maintainers: $team_docker
+    supershipit: felixfontein
+  $plugins/doc_fragments/mso.py: *aci
+  $plugins/doc_fragments/vultr.py:
+    maintainers: $team_vultr
+    labels: cloud
+  $plugins/doc_fragments/xenserver.py:
+    maintainers: bvitnik
 ###############################
 # plugins/filter
   $plugins/filter/:
@@ -1200,24 +1233,6 @@ files:
     keywords:
       - jinja
       - jinja2
-  lib/ansible/utils/module_docs_fragments/:
-    support: community
-  lib/ansible/utils/module_docs_fragments/aci.py: *aci
-  lib/ansible/utils/module_docs_fragments/acme.py:
-    maintainers: resmo felixfontein
-  lib/ansible/utils/module_docs_fragments/docker.py:
-    support: community
-    maintainers: $team_docker
-    supershipit: felixfontein
-  lib/ansible/utils/module_docs_fragments/mso.py: *aci
-  lib/ansible/utils/module_docs_fragments/xenserver.py:
-    maintainers: bvitnik
-  lib/ansible/utils/module_docs_fragments/cloudstack.py:
-    maintainers: $team_cloudstack
-    labels: cloudstack
-  lib/ansible/utils/module_docs_fragments/vultr.py:
-    maintainers: $team_vultr
-    labels: cloud
   test/sanity/validate-modules:
     notified:
       - mattclay
@@ -1240,6 +1255,9 @@ files:
     maintainers:
       - samccann
   docs/docsite/rst/scenario_guides/guide_aci.rst: *aci
+  docs/docsite/rst/scenario_guides/guide_docker.rst:
+    maintainers: $team_docker
+    labels: docker
   docs/docsite/rst/user_guide/intro_bsd.rst: *bsd
 ###############################
 # 'test' is a component path, then 'test' label will be automatically added
@@ -1296,6 +1314,7 @@ files:
     maintainers: $team_nxos
     labels:
       - networking
+  test/units/modules/source_control/test_gitlab_: *gitlab
   test/sanity/pep8/legacy-files.txt:
     notified: mattclay
   hacking/report.py:
@@ -1322,11 +1341,13 @@ macros:
   team_e_spirit: MatrixCrawler getjack
   team_extreme: bigmstone LindsayHill
   team_fortimanager: Ghilli3 lweighall p4r4n0y1ng Ftntcorecse
+  team_gitlab: dagwieers marwatk Shaps waheedi
   team_google: rambleraptor erjohnso
   team_hpux: bcoca dagwieers
   team_ipa: Nosmoht Akasurde fxfitz
   team_jboss: jairojunior wbrefvem Wolfant
   team_linode: InTheCloudDan lwm displague rmcintosh
+  team_macos: dagwieers
   team_manageiq: gtanzillo abellotti zgalor yaacov cben
   team_meraki: dagwieers kbreit
   team_netapp: hulquest lmprice ndswartz amit0701 schmots1 carchi8py lonico
