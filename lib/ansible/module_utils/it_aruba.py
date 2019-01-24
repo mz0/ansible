@@ -72,6 +72,10 @@ def detail2(server):
     b = "CreationDate"
     c = "EasyCloudIPAddress"
     ci = "Value"
+    cg = "Gateway"
+    cm = "SubNetMask"
+    cp = "PrefixIPv6"
+    cq = "GatewayIPv6"
     d = "NetworkAdapters"
     dd = "IPAddresses"
     dd6 = "StartRangeIPv6"
@@ -82,17 +86,17 @@ def detail2(server):
     r = "RenewDateSmart"
     s = "ServerStatus"  # 2 - Off, 3 - On
     sz = "EasyCloudPackageID" # 1
-    keys = (a, b, d, t, r, sz)
+    szi = {
+        1: "S",
+        6: "M",
+        7: "L",
+        8: "X",
+        9:  "M", # Windows-specific ?
+        10: "L",
+        11: "X",
+    }
+    keys = (a, b, c, d, t, r, sz)
     if all(k in server for k in keys):
-        szi = {
-            1: "S",
-            6: "M",
-            7: "L",
-            8: "X",
-            9:  "M",
-            10: "L",
-            11: "X",
-        }
         return dict(
             dc=server[z],
             id=server[i],
@@ -106,6 +110,10 @@ def detail2(server):
             MAC=server[d][0][dm],
             ip6=server[d][0][dd][0][dd6],
             ip4=server[c][ci],
+            ip4gw=server[c][cg],
+            ip4am=server[c][cm],
+            ip6gw=server[c][cq],
+            ip6am=server[c][cp],
             created=hmn(server[b]),
             recharge=hmn(server[r]),
         )
