@@ -112,6 +112,9 @@ options:
                       are C(item in not supported state), C(item in normal state),
                       C(LLD rule in not supported state),
                       C(LLD rule in normal state), C(trigger in unknown state), C(trigger in normal state).
+                    - When I(type) is set to C(trigger_severity), the choices
+                      are (case-insensitive) C(not classified), C(information), C(warning), C(average), C(high), C(disaster)
+                      irrespective of user-visible names being changed in Zabbix. Defaults to C(not classified) if omitted.
                     - Besides the above options, this is usualy either the name
                       of the object or a string to compare with.
             operator:
@@ -166,11 +169,11 @@ options:
             - Works only with >= Zabbix 3.2
     acknowledge_default_message:
         description:
-            - Acknowledge operation message text.
+            - Update operation (known as "Acknowledge operation" before Zabbix 4.0) message text.
             - Works only with >= Zabbix 3.4
     acknowledge_default_subject:
         description:
-            - Acknowledge operation message subject.
+            - Update operation (known as "Acknowledge operation" before Zabbix 4.0) message subject.
             - Works only with >= Zabbix 3.4
     operations:
         type: list
@@ -1436,7 +1439,7 @@ class Filter(object):
         except Exception as e:
             self._module.fail_json(
                 msg="""Unsupported value '%s' for specified condition type.
-                       Check out Zabbix API documetation for supported values for
+                       Check out Zabbix API documentation for supported values for
                        condition type '%s' at
                        https://www.zabbix.com/documentation/3.4/manual/api/reference/action/object#action_filter_condition""" % (value, conditiontype)
             )
