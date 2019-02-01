@@ -91,7 +91,7 @@ class SmartVM(object):
         n = 'name'
         keys = (z, i, o, b, n)
         if det1 and  all(k in det1 for k in keys):
-            self.id   = det1[i]
+            self.id = det1[i]
             self.name = det1[n]
             self.isON = det1[o]
             self.busy = det1[b]

@@ -91,7 +91,7 @@ def detail2(server):
         6: "M",
         7: "L",
         8: "X",
-        9:  "M", # Windows-specific ?
+        9:  "M",  # Windows-specific ?
         10: "L",
         11: "X",
     }
