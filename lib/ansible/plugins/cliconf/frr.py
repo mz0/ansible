@@ -25,8 +25,8 @@ author: Ansible Networking Team
 cliconf: frr
 short_description: Use frr cliconf to run command on Free Range Routing platform
 description:
-  - This frr plugin provides low level abstraction api's for
-    sending and receiving CLI commands from devices running frr.
+  - This frr plugin provides low level abstraction apis for
+    sending and receiving CLI commands from FRR network devices.
 version_added: "2.8"
 """
 
@@ -187,12 +187,11 @@ class Cliconf(CliconfBase):
 
         return self.send_command(command=command, prompt=prompt, answer=answer, sendonly=sendonly, check_all=check_all)
 
-    def run_commands(self, commands=None, check_rc=True, return_timestamps=False):
+    def run_commands(self, commands=None, check_rc=True):
         if commands is None:
             raise ValueError("'commands' value is required")
 
         responses = list()
-        timestamps = list()
         for cmd in to_list(commands):
             if not isinstance(cmd, Mapping):
                 cmd = {'command': cmd}
@@ -203,16 +202,11 @@ class Cliconf(CliconfBase):
 
             try:
                 out = self.send_command(**cmd)
-                timestamp = get_timestamp()
             except AnsibleConnectionFailure as e:
                 if check_rc:
                     raise
                 out = getattr(e, 'err', to_text(e))
 
             responses.append(out)
-            timestamps.append(timestamp)
 
-        if return_timestamps:
-            return responses, timestamps
-        else:
-            return responses
+        return responses

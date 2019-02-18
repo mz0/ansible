@@ -83,23 +83,15 @@ options:
       - present
 
 extends_documentation_fragment:
-    - docker
+  - docker
+  - docker.docker_py_1_documentation
 
 author:
-    - Alex Grönholm (@agronholm)
+  - Alex Grönholm (@agronholm)
 
 requirements:
-    - "python >= 2.6"
-    - "docker-py >= 1.10.0"
-    - "Please note that the L(docker-py,https://pypi.org/project/docker-py/) Python
-       module has been superseded by L(docker,https://pypi.org/project/docker/)
-       (see L(here,https://github.com/docker/docker-py/issues/1310) for details).
-       For Python 2.6, C(docker-py) must be used. Otherwise, it is recommended to
-       install the C(docker) Python module. Note that both modules should I(not)
-       be installed at the same time. Also note that when both modules are installed
-       and one of them is uninstalled, the other might no longer function and a
-       reinstall of it is required."
-    - "The docker server >= 1.9.0"
+  - "docker-py >= 1.10.0"
+  - "The docker server >= 1.9.0"
 '''
 
 EXAMPLES = '''
@@ -121,8 +113,11 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
-facts:
-    description: Volume inspection results for the affected volume.
+docker_volume:
+    description:
+    - Volume inspection results for the affected volume.
+    - Note that facts are part of the registered vars since Ansible 2.8. For compatibility reasons, the facts
+      are also accessible directly.
     returned: success
     type: dict
     sample: {}
@@ -131,10 +126,10 @@ facts:
 try:
     from docker.errors import APIError
 except ImportError:
-    # missing docker-py handled in ansible.module_utils.docker_common
+    # missing docker-py handled in ansible.module_utils.docker.common
     pass
 
-from ansible.module_utils.docker_common import (
+from ansible.module_utils.docker.common import (
     DockerBaseClass,
     AnsibleDockerClient,
     DifferenceTracker,
@@ -160,9 +155,9 @@ class TaskParameters(DockerBaseClass):
 
         if self.force is not None:
             if self.recreate != 'never':
-                client.module.fail_json(msg='Cannot use the deprecated "force" '
-                                            'option when "recreate" is set. Please stop '
-                                            'using the force option.')
+                client.fail('Cannot use the deprecated "force" '
+                            'option when "recreate" is set. Please stop '
+                            'using the force option.')
             client.module.warn('The "force" option of docker_volume has been deprecated '
                                'in Ansible 2.8. Please use the "recreate" '
                                'option, which provides the same functionality as "force".')
@@ -292,7 +287,9 @@ class DockerVolumeManager(object):
         if not self.check_mode and not self.parameters.debug:
             self.results.pop('actions')
 
-        self.results['ansible_facts'] = {u'docker_volume': self.get_existing_volume()}
+        volume_facts = self.get_existing_volume()
+        self.results['ansible_facts'] = {u'docker_volume': volume_facts}
+        self.results['docker_volume'] = volume_facts
 
     def absent(self):
         self.diff_tracker.add('exists', parameter=False, active=self.existing_volume is not None)

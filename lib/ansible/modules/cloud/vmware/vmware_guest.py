@@ -344,7 +344,7 @@ options:
   datastore:
     description:
     - Specify datastore or datastore cluster to provision virtual machine.
-    - 'This will take precendence over "disk.datastore" parameter.'
+    - 'This will take precedence over "disk.datastore" parameter.'
     - This parameter is useful to override datastore or datastore cluster setting.
     - For example, when user has different datastore or datastore cluster for templates and virtual machines.
     - Please see example for more usage.
@@ -1810,7 +1810,8 @@ class PyVmomiHelper(PyVmomi):
             if 'filename' in expected_disk_spec and expected_disk_spec['filename'] is not None:
                 self.add_existing_vmdk(vm_obj, expected_disk_spec, diskspec, scsi_ctl)
                 continue
-            else:
+            elif vm_obj is None:
+                # We are creating new VM
                 diskspec.fileOperation = vim.vm.device.VirtualDeviceSpec.FileOperation.create
 
             # which datastore?
@@ -2119,7 +2120,7 @@ class PyVmomiHelper(PyVmomi):
 
         # set the destination datastore for VM & disks
         if self.params['datastore']:
-            # Give precendence to datastore value provided by user
+            # Give precedence to datastore value provided by user
             # User may want to deploy VM to specific datastore.
             datastore_name = self.params['datastore']
             # Check if user has provided datastore cluster first

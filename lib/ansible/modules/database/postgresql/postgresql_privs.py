@@ -269,14 +269,16 @@ EXAMPLES = """
 
 import traceback
 
+PSYCOPG2_IMP_ERR = None
 try:
     import psycopg2
     import psycopg2.extensions
 except ImportError:
+    PSYCOPG2_IMP_ERR = traceback.format_exc()
     psycopg2 = None
 
 # import module snippets
-from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible.module_utils.database import pg_quote_identifier
 from ansible.module_utils._text import to_native
 
@@ -370,7 +372,7 @@ class Connection(object):
         query = """SELECT relname
                    FROM pg_catalog.pg_class c
                    JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-                   WHERE nspname = %s AND relkind in ('r', 'v')"""
+                   WHERE nspname = %s AND relkind in ('r', 'v', 'm')"""
         self.cursor.execute(query, (schema,))
         return [t[0] for t in self.cursor.fetchall()]
 
@@ -715,7 +717,7 @@ def main():
 
     # Connect to Database
     if not psycopg2:
-        module.fail_json(msg='Python module "psycopg2" must be installed.')
+        module.fail_json(msg=missing_required_lib('psycopg2'), exception=PSYCOPG2_IMP_ERR)
     try:
         conn = Connection(p)
     except psycopg2.Error as e:

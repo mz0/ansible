@@ -21,10 +21,11 @@ short_description: Retrieves facts about docker host and lists of objects of the
 description:
   - Retrieves facts about a docker host.
   - Essentially returns the output of C(docker system info).
-  - Returns lists of objects names for the services - images, networks, volumes, containers.
-  - Returns disk usage information.
-  - The output differs depending on API version available on docker host.
-  - Must be executed on a host running a Docker, otherwise the module will fail.
+  - The module also allows to list object names for containers, images, networks and volumes.
+    It also allows to query information on disk usage.
+  - The output differs depending on API version of the docker daemon.
+  - If the docker daemon cannot be contacted or does not meet the API version requirements,
+    the module will fail.
 
 version_added: "2.8"
 
@@ -91,23 +92,15 @@ options:
     type: bool
     default: no
 extends_documentation_fragment:
-    - docker
+  - docker
+  - docker.docker_py_1_documentation
 
 author:
-    - Piotr Wojciechowski (@WojciechowskiPiotr)
+  - Piotr Wojciechowski (@WojciechowskiPiotr)
 
 requirements:
-    - "python >= 2.6"
-    - "docker-py >= 1.10.0"
-    - "Please note that the L(docker-py,https://pypi.org/project/docker-py/) Python
-       module has been superseded by L(docker,https://pypi.org/project/docker/)
-       (see L(here,https://github.com/docker/docker-py/issues/1310) for details).
-       For Python 2.6, C(docker-py) must be used. Otherwise, it is recommended to
-       install the C(docker) Python module. Note that both modules should I(not)
-       be installed at the same time. Also note that when both modules are installed
-       and one of them is uninstalled, the other might no longer function and a
-       reinstall of it is required."
-    - "Docker API >= 1.21"
+  - "docker-py >= 1.10.0"
+  - "Docker API >= 1.21"
 '''
 
 EXAMPLES = '''
@@ -144,6 +137,12 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
+can_talk_to_docker:
+    description:
+      - Will be C(true) if the module can talk to the docker daemon.
+    returned: both on success and on error
+    type: bool
+
 docker_host_facts:
     description:
       - Facts representing the basic state of the docker host. Matches the C(docker system info) output.
@@ -186,20 +185,16 @@ docker_disk_usage:
 
 '''
 
-from ansible.module_utils.docker_common import AnsibleDockerClient, DockerBaseClass
+from ansible.module_utils.docker.common import AnsibleDockerClient, DockerBaseClass
 from ansible.module_utils._text import to_native
 
 try:
-    from docker.errors import APIError, NotFound
+    from docker.errors import APIError
 except ImportError:
-    # missing docker-py handled in ansible.module_utils.docker_common
+    # missing docker-py handled in ansible.module_utils.docker.common
     pass
 
-try:
-    from ansible.module_utils.docker_common import docker_version, clean_dict_booleans_for_docker_api
-except Exception as dummy:
-    # missing docker-py handled in ansible.module_utils.docker
-    pass
+from ansible.module_utils.docker.common import clean_dict_booleans_for_docker_api
 
 
 class DockerHostManager(DockerBaseClass):
@@ -230,16 +225,16 @@ class DockerHostManager(DockerBaseClass):
         try:
             return self.client.info()
         except APIError as exc:
-            self.client.fail_json(msg="Error inspecting docker host: %s" % to_native(exc))
+            self.client.fail("Error inspecting docker host: %s" % to_native(exc))
 
     def get_docker_disk_usage_facts(self):
         try:
             if self.verbose_output:
                 return self.client.df()
             else:
-                return dict(LayerSize=self.client.df()['LayersSize'])
+                return dict(LayersSize=self.client.df()['LayersSize'])
         except APIError as exc:
-            self.client.fail_json(msg="Error inspecting docker host: %s" % to_native(exc))
+            self.client.fail("Error inspecting docker host: %s" % to_native(exc))
 
     def get_docker_items_list(self, docker_object=None, filters=None, verbose=False):
         items = None
@@ -260,8 +255,8 @@ class DockerHostManager(DockerBaseClass):
             elif docker_object == 'volumes':
                 items = self.client.volumes(filters=filters)
         except APIError as exc:
-            self.client.fail_json(msg="Error inspecting docker host for object '%s': %s" %
-                                      (docker_object, to_native(exc)))
+            self.client.fail("Error inspecting docker host for object '%s': %s" %
+                             (docker_object, to_native(exc)))
 
         if self.verbose_output:
             if docker_object != 'volumes':
@@ -311,7 +306,11 @@ def main():
         supports_check_mode=True,
         min_docker_version='1.10.0',
         min_docker_api_version='1.21',
+        fail_results=dict(
+            can_talk_to_docker=False,
+        ),
     )
+    client.fail_results['can_talk_to_docker'] = True
 
     results = dict(
         changed=False,
