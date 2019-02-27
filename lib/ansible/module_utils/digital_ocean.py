@@ -27,7 +27,6 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
-import os
 from ansible.module_utils.urls import fetch_url
 from ansible.module_utils._text import to_text
 from ansible.module_utils.basic import env_fallback
@@ -55,6 +54,13 @@ class Response(object):
     @property
     def status_code(self):
         return self.info["status"]
+
+    @property
+    def ratelimit_remaining(self):
+        if "ratelimit-remaining" in self.info:
+            return self.info["ratelimit-remaining"]
+        else:
+            return None
 
 
 class DigitalOceanHelper:
@@ -105,7 +111,6 @@ class DigitalOceanHelper:
                 no_log=True,
                 # Support environment variable for DigitalOcean OAuth Token
                 fallback=(env_fallback, ['DO_API_TOKEN', 'DO_API_KEY', 'DO_OAUTH_TOKEN', 'OAUTH_TOKEN']),
-                required=False,
                 aliases=['api_token'],
             ),
             timeout=dict(type='int', default=30),
