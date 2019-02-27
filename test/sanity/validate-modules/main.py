@@ -985,6 +985,8 @@ class ModuleValidator(Validator):
                                 msg='Unknown DOCUMENTATION error, see TRACE: %s' % e
                             )
 
+                    add_fragments(doc, self.object_path, fragment_loader=fragment_loader)
+
                     if 'options' in doc and doc['options'] is None:
                         self.reporter.error(
                             path=self.object_path,
@@ -1004,8 +1006,6 @@ class ModuleValidator(Validator):
                     else:
                         # This is the normal case
                         self._validate_docs_schema(doc, doc_schema(self.object_name.split('.')[0]), 'DOCUMENTATION', 305)
-
-                    add_fragments(doc, self.object_path, fragment_loader=fragment_loader)
 
                     existing_doc = self._check_for_new_args(doc, metadata)
                     self._check_version_added(doc, existing_doc)
@@ -1098,7 +1098,7 @@ class ModuleValidator(Validator):
                 )
                 return
 
-        if existing_doc and version_added_raw != existing_doc.get('version_added'):
+        if existing_doc and str(version_added_raw) != str(existing_doc.get('version_added')):
             self.reporter.error(
                 path=self.object_path,
                 code=307,
@@ -1404,7 +1404,7 @@ class ModuleValidator(Validator):
                     if existing_version:
                         break
                 current_version = details.get('version_added')
-                if current_version != existing_version:
+                if str(current_version) != str(existing_version):
                     self.reporter.error(
                         path=self.object_path,
                         code=309,

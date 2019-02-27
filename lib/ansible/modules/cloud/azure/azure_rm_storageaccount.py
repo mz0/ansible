@@ -33,8 +33,8 @@ options:
             - Name of the storage account to update or create.
     state:
         description:
-            - Assert the state of the storage account. Use 'present' to create or update a storage account and
-              'absent' to delete an account.
+            - Assert the state of the storage account. Use C(present) to create or update a storage account and
+              C(absent) to delete an account.
         default: present
         choices:
             - absent
@@ -139,13 +139,13 @@ author:
 EXAMPLES = '''
     - name: remove account, if it exists
       azure_rm_storageaccount:
-        resource_group: Testing
+        resource_group: myResourceGroup
         name: clh0002
         state: absent
 
     - name: create an account
       azure_rm_storageaccount:
-        resource_group: Testing
+        resource_group: myResourceGroup
         name: clh0002
         type: Standard_RAGRS
         tags:
@@ -154,7 +154,7 @@ EXAMPLES = '''
 
     - name: create an account with blob CORS
       azure_rm_storageaccount:
-        resource_group: Testing
+        resource_group: myResourceGroup
         name: clh002
         type: Standard_RAGRS
         blob_cors:
