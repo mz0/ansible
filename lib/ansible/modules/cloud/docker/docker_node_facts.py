@@ -48,7 +48,7 @@ author:
   - Piotr Wojciechowski (@wojciechowskipiotr)
 
 requirements:
-  - "docker-py >= 1.10.0"
+  - "docker-py >= 2.4.0"
   - "Docker API >= 1.24"
 '''
 
@@ -76,7 +76,7 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
-nodes_facts:
+nodes:
     description:
       - Facts representing the current state of the nodes. Matches the C(docker node inspect) output.
       - Can contain multiple entries if more than one node provided in I(name), or I(name) is not provided.
@@ -130,17 +130,17 @@ def main():
     client = AnsibleDockerSwarmClient(
         argument_spec=argument_spec,
         supports_check_mode=True,
-        min_docker_version='1.10.0',
+        min_docker_version='2.4.0',
         min_docker_api_version='1.24',
     )
 
     client.fail_task_if_not_swarm_manager()
 
-    node = get_node_facts(client)
+    nodes = get_node_facts(client)
 
     client.module.exit_json(
         changed=False,
-        nodes_facts=node,
+        nodes=nodes,
     )
 
 

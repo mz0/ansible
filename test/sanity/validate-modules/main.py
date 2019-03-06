@@ -1301,6 +1301,14 @@ class ModuleValidator(Validator):
                          "but documentation defines choices as (%r)" % (arg, arg_choices, doc_choices))
                 )
 
+        for arg in args_from_argspec:
+            if not str(arg).isidentifier():
+                self.reporter.error(
+                    path=self.object_path,
+                    code=336,
+                    msg="Argument '%s' is not a valid python identifier" % arg
+                )
+
         if docs:
             file_common_arguments = set()
             for arg, data in FILE_COMMON_ARGUMENTS.items():
@@ -1370,7 +1378,8 @@ class ModuleValidator(Validator):
                 return
 
         try:
-            mod_version_added = StrictVersion(
+            mod_version_added = StrictVersion()
+            mod_version_added.parse(
                 str(existing_doc.get('version_added', '0.0'))
             )
         except ValueError:
@@ -1415,11 +1424,11 @@ class ModuleValidator(Validator):
                 continue
 
             try:
-                version_added = StrictVersion(
+                version_added = StrictVersion()
+                version_added.parse(
                     str(details.get('version_added', '0.0'))
                 )
-                version_added.version
-            except (ValueError, AttributeError):
+            except ValueError:
                 version_added = details.get('version_added', '0.0')
                 self.reporter.error(
                     path=self.object_path,
