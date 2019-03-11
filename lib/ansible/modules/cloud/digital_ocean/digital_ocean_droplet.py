@@ -26,13 +26,13 @@ options:
      - Ensure droplet is C(present) or C(absent). If C(present) and exists and I(rebuild=True), then rebuild it.
     default: present
     type: str
-    choices: ['present', 'absent']
+    choices: [ present, absent ]
   id:
     description:
      - Numeric I(id) of the Droplet you want to check, delete or rebuild.
      - If both I(id) and I(name) are present and a droplet with that I(id) exists, I(name) will be ignored.
     type: int
-    aliases: ['droplet_id']
+    aliases: [ droplet_id ]
   name:
     description:
      - Droplet name, must be a valid hostname or a FQDN in your domain.
@@ -52,13 +52,13 @@ options:
      - If you forget to supply that, the module will build the cheapest droplet C(s-1vcpu-1gb).
      - If you need to grow your droplet you may do that later.
     type: str
-    aliases: ['size_id']
+    aliases: [ size_id ]
   image:
     description:
      - Image slug or ID for new or rebuilt droplet e.g. C(ubuntu-16-04-x64) or C(42251561).
      - Required when I(state=present) and the droplet does not yet exist.
     type: str
-    aliases: ['image_id']
+    aliases: [ image_id ]
   region:
     description:
      - Datacenter slug you would like your droplet to be created in, e.g. C(sfo2), C(sfo1), or C(sgp1).
@@ -66,7 +66,7 @@ options:
      - "New DigitalOcean users be aware: due to limited capacity, C(nyc2), C(ams2), and C(sfo1) are
       currently available only to resource owners in respective datacenters."
     type: str
-    aliases: ['region_id']
+    aliases: [ region_id ]
   ssh_keys:
     description:
      - 'List of DigitalOcean registered SSH key numeric IDs or fingerprints to put in ~root/authorized_keys on creation, e.g.
@@ -530,6 +530,7 @@ class DODroplet(object):
         if json_data:
             if self.module.check_mode:
                 self.module.exit_json(changed=True)
+            # TODO return json_data['droplet']['networks'] for known_hosts cleanup
             response = self.rest.delete('droplets/{0}'.format(json_data['droplet']['id']))
             if response.status_code == 204:
                 self.module.exit_json(changed=True, msg='Droplet deleted')
@@ -551,12 +552,12 @@ class DODroplet(object):
             if self.ops:
                 rj = response.json
                 if 'droplet' in rj and 'locked' in rj['droplet']:
-                    if 'v4' in rj['droplet']['networks'] and len(response.json['droplet']['networks']['v4']):
-                        net = response.json['droplet']['networks']['v4'][0]
+                    if 'v4' in rj['droplet']['networks'] and len(rj['droplet']['networks']['v4']):
+                        net = rj['droplet']['networks']['v4'][0]
                     else:
                         net = rj['droplet']['networks']
-                    lck = response.json['droplet']['locked']
-                    sta = response.json['droplet']['status']
+                    lck = rj['droplet']['locked']
+                    sta = rj['droplet']['status']
                 self.ops.append("{0} status {1} locked {2} net {3}".format(time.time(), sta, lck, net))
             locked = response.json['droplet']['locked']
             has_net = len(response.json['droplet']['networks']['v4'])
@@ -597,7 +598,6 @@ def main():
         argument_spec=argument_spec,
         required_one_of=(
             ['id', 'name'],
-            ['oauth_token', 'api_token'],  # FIXME: oauth_token docs should have 'required: yes'
         ),
         supports_check_mode=True,
     )
