@@ -530,6 +530,7 @@ class DODroplet(object):
         if json_data:
             if self.module.check_mode:
                 self.module.exit_json(changed=True)
+            # TODO return json_data['droplet']['networks'] for known_hosts cleanup
             response = self.rest.delete('droplets/{0}'.format(json_data['droplet']['id']))
             if response.status_code == 204:
                 self.module.exit_json(changed=True, msg='Droplet deleted')
@@ -551,12 +552,12 @@ class DODroplet(object):
             if self.ops:
                 rj = response.json
                 if 'droplet' in rj and 'locked' in rj['droplet']:
-                    if 'v4' in rj['droplet']['networks'] and len(response.json['droplet']['networks']['v4']):
-                        net = response.json['droplet']['networks']['v4'][0]
+                    if 'v4' in rj['droplet']['networks'] and len(rj['droplet']['networks']['v4']):
+                        net = rj['droplet']['networks']['v4'][0]
                     else:
                         net = rj['droplet']['networks']
-                    lck = response.json['droplet']['locked']
-                    sta = response.json['droplet']['status']
+                    lck = rj['droplet']['locked']
+                    sta = rj['droplet']['status']
                 self.ops.append("{0} status {1} locked {2} net {3}".format(time.time(), sta, lck, net))
             locked = response.json['droplet']['locked']
             has_net = len(response.json['droplet']['networks']['v4'])
