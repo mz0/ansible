@@ -75,8 +75,8 @@ options:
       pull:
         description:
           - When building an image downloads any updates to the FROM image in Dockerfile.
+          - The default is currently C(yes). This will change to C(no) in Ansible 2.12.
         type: bool
-        default: yes
       rm:
         description:
           - Remove intermediate containers after build.
@@ -118,6 +118,13 @@ options:
             description:
               - CPUs in which to allow execution, e.g., "0-3", "0,1".
             type: str
+      use_config_proxy:
+        description:
+          - If set to `yes` and a proxy configuration is specified in the docker client configuration
+            (by default C($HOME/.docker/config.json)), the corresponding environment variables will
+            be set in the container being built.
+          - Needs Docker SDK for Python >= 3.7.0.
+        type: bool
     version_added: "2.8"
   archive_path:
     description:
@@ -200,8 +207,8 @@ options:
     description:
       - When building an image downloads any updates to the FROM image in Dockerfile.
       - Please use I(build.pull) instead. This option will be removed in Ansible 2.12.
+      - The default is currently C(yes). This will change to C(no) in Ansible 2.12.
     type: bool
-    default: yes
     version_added: "2.1"
   push:
     description:
@@ -454,6 +461,7 @@ class ImageManager(DockerBaseClass):
         self.http_timeout = build.get('http_timeout')
         self.push = parameters.get('push')
         self.buildargs = build.get('args')
+        self.use_config_proxy = build.get('use_config_proxy')
 
         # If name contains a tag, it takes precedence over tag parameter.
         if not is_image_name_id(self.name):
@@ -711,6 +719,12 @@ class ImageManager(DockerBaseClass):
             params['cache_from'] = self.cache_from
         if self.network:
             params['network_mode'] = self.network
+        if self.use_config_proxy:
+            params['use_config_proxy'] = self.use_config_proxy
+            # Due to a bug in docker-py, it will crash if
+            # use_config_proxy is True and buildargs is None
+            if 'buildargs' not in params:
+                params['buildargs'] = {}
 
         for line in self.client.build(**params):
             # line = json.loads(line)
@@ -773,9 +787,10 @@ def main():
             network=dict(type='str'),
             nocache=dict(type='bool', default=False),
             path=dict(type='path', required=True),
-            pull=dict(type='bool', default=True),
+            pull=dict(type='bool'),
             rm=dict(type='bool', default=True),
             args=dict(type='dict'),
+            use_config_proxy=dict(type='bool'),
         )),
         archive_path=dict(type='path'),
         container_limits=dict(type='dict', options=dict(
@@ -794,7 +809,7 @@ def main():
         name=dict(type='str', required=True),
         nocache=dict(type='bool', default=False, removedin_version='2.12'),
         path=dict(type='path', aliases=['build_path'], removedin_version='2.12'),
-        pull=dict(type='bool', default=True, removedin_version='2.12'),
+        pull=dict(type='bool', removedin_version='2.12'),
         push=dict(type='bool', default=False),
         repository=dict(type='str'),
         rm=dict(type='bool', default=True, removedin_version='2.12'),
@@ -811,14 +826,18 @@ def main():
     ]
 
     def detect_build_cache_from(client):
-        return bool(client.params['build'] and client.params['build']['cache_from'] is not None)
+        return client.params['build'] and client.params['build']['cache_from'] is not None
 
     def detect_build_network(client):
-        return bool(client.params['build'] and client.params['build']['network'] is not None)
+        return client.params['build'] and client.params['build']['network'] is not None
+
+    def detect_use_config_proxy(client):
+        return client.params['build'] and client.params['build']['use_config_proxy'] is not None
 
     option_minimal_versions = dict()
     option_minimal_versions["build.cache_from"] = dict(docker_py_version='2.1.0', docker_api_version='1.25', detect_usage=detect_build_cache_from)
     option_minimal_versions["build.network"] = dict(docker_py_version='2.4.0', docker_api_version='1.25', detect_usage=detect_build_network)
+    option_minimal_versions["build.use_config_proxy"] = dict(docker_py_version='3.7.0', detect_usage=detect_use_config_proxy)
 
     client = AnsibleDockerClient(
         argument_spec=argument_spec,
@@ -851,7 +870,7 @@ def main():
     )
     for option, build_option in build_options.items():
         default_value = None
-        if option in ('pull', 'rm'):
+        if option in ('rm', ):
             default_value = True
         elif option in ('nocache', ):
             default_value = False
@@ -863,9 +882,13 @@ def main():
             client.module.params['build'][build_option] = client.module.params[option]
             client.module.warn('Please specify build.%s instead of %s. The %s option '
                                'has been renamed and will be removed in Ansible 2.12.' % (build_option, option, option))
-    if client.module.params['source'] == 'build' and \
-            (not client.module.params['build'] or not client.module.params['build'].get('path')):
-        client.module.fail('If "source" is set to "build", the "build.path" option must be specified.')
+    if client.module.params['source'] == 'build':
+        if (not client.module.params['build'] or not client.module.params['build'].get('path')):
+            client.module.fail('If "source" is set to "build", the "build.path" option must be specified.')
+        if client.module.params['build']['pull'] is None:
+            client.module.warn("The default for build.pull is currently 'yes', but will be changed to 'no' in Ansible 2.12. "
+                               "Please set build.pull explicitly to the value you need.")
+            client.module.params['build']['pull'] = True  # TODO: change to False in Ansible 2.12
 
     if client.module.params['state'] == 'present' and client.module.params['source'] is None:
         # Autodetection. To be removed in Ansible 2.12.
