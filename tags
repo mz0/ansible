@@ -38,6 +38,6 @@ rmtags "$eol"
 echo
 
 for tag in $(git tag); do
-  echo -n "Tag ${tag}: \t commit "
+  printf "Tag ${tag}: \t commit "
   git show --oneline $tag |head -4 |tail -1|cut -f1 -d' '
 done
