@@ -5,9 +5,9 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import json
-import re
 from ansible.module_utils.urls import open_url
 from ansible.module_utils._text import to_text
+from ansible.module_utils.six.moves import http_client
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 HEADERS = {'content-type': 'application/json'}
@@ -15,9 +15,10 @@ HEADERS = {'content-type': 'application/json'}
 
 class RedfishUtils(object):
 
-    def __init__(self, creds, root_uri):
+    def __init__(self, creds, root_uri, timeout):
         self.root_uri = root_uri
         self.creds = creds
+        self.timeout = timeout
         self._init_session()
         return
 
@@ -29,16 +30,20 @@ class RedfishUtils(object):
                             url_password=self.creds['pswd'],
                             force_basic_auth=True, validate_certs=False,
                             follow_redirects='all',
-                            use_proxy=False)
+                            use_proxy=False, timeout=self.timeout)
             data = json.loads(resp.read())
         except HTTPError as e:
-            return {'ret': False, 'msg': "HTTP Error: %s" % e.code}
+            msg = self._get_extended_message(e)
+            return {'ret': False,
+                    'msg': "HTTP Error %s on GET request to '%s', extended message: '%s'"
+                           % (e.code, uri, msg)}
         except URLError as e:
-            return {'ret': False, 'msg': "URL Error: %s" % e.reason}
+            return {'ret': False, 'msg': "URL Error on GET request to '%s': '%s'"
+                                         % (uri, e.reason)}
         # Almost all errors should be caught above, but just in case
         except Exception as e:
             return {'ret': False,
-                    'msg': 'Failed GET operation against Redfish API server: %s' % to_text(e)}
+                    'msg': "Failed GET request to '%s': '%s'" % (uri, to_text(e))}
         return {'ret': True, 'data': data}
 
     def post_request(self, uri, pyld, hdrs):
@@ -49,15 +54,19 @@ class RedfishUtils(object):
                             url_password=self.creds['pswd'],
                             force_basic_auth=True, validate_certs=False,
                             follow_redirects='all',
-                            use_proxy=False)
+                            use_proxy=False, timeout=self.timeout)
         except HTTPError as e:
-            return {'ret': False, 'msg': "HTTP Error: %s" % e.code}
+            msg = self._get_extended_message(e)
+            return {'ret': False,
+                    'msg': "HTTP Error %s on POST request to '%s', extended message: '%s'"
+                           % (e.code, uri, msg)}
         except URLError as e:
-            return {'ret': False, 'msg': "URL Error: %s" % e.reason}
+            return {'ret': False, 'msg': "URL Error on POST request to '%s': '%s'"
+                                         % (uri, e.reason)}
         # Almost all errors should be caught above, but just in case
         except Exception as e:
             return {'ret': False,
-                    'msg': 'Failed POST operation against Redfish API server: %s' % to_text(e)}
+                    'msg': "Failed POST request to '%s': '%s'" % (uri, to_text(e))}
         return {'ret': True, 'resp': resp}
 
     def patch_request(self, uri, pyld, hdrs):
@@ -68,15 +77,19 @@ class RedfishUtils(object):
                             url_password=self.creds['pswd'],
                             force_basic_auth=True, validate_certs=False,
                             follow_redirects='all',
-                            use_proxy=False)
+                            use_proxy=False, timeout=self.timeout)
         except HTTPError as e:
-            return {'ret': False, 'msg': "HTTP Error: %s" % e.code}
+            msg = self._get_extended_message(e)
+            return {'ret': False,
+                    'msg': "HTTP Error %s on PATCH request to '%s', extended message: '%s'"
+                           % (e.code, uri, msg)}
         except URLError as e:
-            return {'ret': False, 'msg': "URL Error: %s" % e.reason}
+            return {'ret': False, 'msg': "URL Error on PATCH request to '%s': '%s'"
+                                         % (uri, e.reason)}
         # Almost all errors should be caught above, but just in case
         except Exception as e:
             return {'ret': False,
-                    'msg': 'Failed PATCH operation against Redfish API server: %s' % to_text(e)}
+                    'msg': "Failed PATCH request to '%s': '%s'" % (uri, to_text(e))}
         return {'ret': True, 'resp': resp}
 
     def delete_request(self, uri, pyld, hdrs):
@@ -87,16 +100,39 @@ class RedfishUtils(object):
                             url_password=self.creds['pswd'],
                             force_basic_auth=True, validate_certs=False,
                             follow_redirects='all',
-                            use_proxy=False)
+                            use_proxy=False, timeout=self.timeout)
         except HTTPError as e:
-            return {'ret': False, 'msg': "HTTP Error: %s" % e.code}
+            msg = self._get_extended_message(e)
+            return {'ret': False,
+                    'msg': "HTTP Error %s on DELETE request to '%s', extended message: '%s'"
+                           % (e.code, uri, msg)}
         except URLError as e:
-            return {'ret': False, 'msg': "URL Error: %s" % e.reason}
+            return {'ret': False, 'msg': "URL Error on DELETE request to '%s': '%s'"
+                                         % (uri, e.reason)}
         # Almost all errors should be caught above, but just in case
         except Exception as e:
             return {'ret': False,
-                    'msg': 'Failed DELETE operation against Redfish API server: %s' % to_text(e)}
+                    'msg': "Failed DELETE request to '%s': '%s'" % (uri, to_text(e))}
         return {'ret': True, 'resp': resp}
+
+    @staticmethod
+    def _get_extended_message(error):
+        """
+        Get Redfish ExtendedInfo message from response payload if present
+        :param error: an HTTPError exception
+        :type error: HTTPError
+        :return: the ExtendedInfo message if present, else standard HTTP error
+        """
+        msg = http_client.responses.get(error.code, '')
+        if error.code >= 400:
+            try:
+                body = error.read().decode('utf-8')
+                data = json.loads(body)
+                ext_info = data['error']['@Message.ExtendedInfo']
+                msg = ext_info[0]['Message']
+            except Exception:
+                pass
+        return msg
 
     def _init_session(self):
         pass
@@ -279,7 +315,7 @@ class RedfishUtils(object):
             ret = inventory.pop('ret') and ret
             if 'entries' in inventory:
                 entries.append(({'systems_uri': systems_uri},
-                               inventory['entries']))
+                                inventory['entries']))
         return dict(ret=ret, entries=entries)
 
     def get_storage_controller_inventory(self, systems_uri):
@@ -436,6 +472,32 @@ class RedfishUtils(object):
         if response['ret'] is False:
             return response
         return {'ret': True}
+
+    def manage_indicator_led(self, command):
+        result = {}
+        key = 'IndicatorLED'
+
+        payloads = {'IndicatorLedOn': 'Lit', 'IndicatorLedOff': 'Off', "IndicatorLedBlink": 'Blinking'}
+
+        result = {}
+        for chassis_uri in self.chassis_uri_list:
+            response = self.get_request(self.root_uri + chassis_uri)
+            if response['ret'] is False:
+                return response
+            result['ret'] = True
+            data = response['data']
+            if key not in data:
+                return {'ret': False, 'msg': "Key %s not found" % key}
+
+            if command in payloads.keys():
+                payload = {'IndicatorLED': payloads[command]}
+                response = self.patch_request(self.root_uri + chassis_uri, payload, HEADERS)
+                if response['ret'] is False:
+                    return response
+            else:
+                return {'ret': False, 'msg': 'Invalid command'}
+
+        return result
 
     def manage_system_power(self, command):
         result = {}
@@ -876,7 +938,64 @@ class RedfishUtils(object):
     def get_multi_cpu_inventory(self):
         return self.aggregate(self.get_cpu_inventory)
 
-    def get_nic_inventory(self, resource_type, systems_uri):
+    def get_memory_inventory(self, systems_uri):
+        result = {}
+        memory_list = []
+        memory_results = []
+        key = "Memory"
+        # Get these entries, but does not fail if not found
+        properties = ['SerialNumber', 'MemoryDeviceType', 'PartNuber',
+                      'MemoryLocation', 'RankCount', 'CapacityMiB', 'OperatingMemoryModes', 'Status', 'Manufacturer', 'Name']
+
+        # Search for 'key' entry and extract URI from it
+        response = self.get_request(self.root_uri + systems_uri)
+        if response['ret'] is False:
+            return response
+        result['ret'] = True
+        data = response['data']
+
+        if key not in data:
+            return {'ret': False, 'msg': "Key %s not found" % key}
+
+        memory_uri = data[key]["@odata.id"]
+
+        # Get a list of all DIMMs and build respective URIs
+        response = self.get_request(self.root_uri + memory_uri)
+        if response['ret'] is False:
+            return response
+        result['ret'] = True
+        data = response['data']
+
+        for dimm in data[u'Members']:
+            memory_list.append(dimm[u'@odata.id'])
+
+        for m in memory_list:
+            dimm = {}
+            uri = self.root_uri + m
+            response = self.get_request(uri)
+            if response['ret'] is False:
+                return response
+            data = response['data']
+
+            if "Status" in data:
+                if "State" in data["Status"]:
+                    if data["Status"]["State"] == "Absent":
+                        continue
+            else:
+                continue
+
+            for property in properties:
+                if property in data:
+                    dimm[property] = data[property]
+
+            memory_results.append(dimm)
+        result["entries"] = memory_results
+        return result
+
+    def get_multi_memory_inventory(self):
+        return self.aggregate(self.get_memory_inventory)
+
+    def get_nic_inventory(self, resource_uri):
         result = {}
         nic_list = []
         nic_results = []
@@ -885,12 +1004,6 @@ class RedfishUtils(object):
         properties = ['Description', 'FQDN', 'IPv4Addresses', 'IPv6Addresses',
                       'NameServers', 'PermanentMACAddress', 'SpeedMbps', 'MTUSize',
                       'AutoNeg', 'Status']
-
-        #  Given resource_type, use the proper URI
-        if resource_type == 'Systems':
-            resource_uri = systems_uri
-        elif resource_type == 'Manager':
-            resource_uri = self.manager_uri
 
         response = self.get_request(self.root_uri + resource_uri)
         if response['ret'] is False:
@@ -932,15 +1045,23 @@ class RedfishUtils(object):
     def get_multi_nic_inventory(self, resource_type):
         ret = True
         entries = []
-        for systems_uri in self.systems_uris:
-            inventory = self.get_nic_inventory(resource_type, systems_uri)
+
+        #  Given resource_type, use the proper URI
+        if resource_type == 'Systems':
+            resource_uris = self.systems_uris
+        elif resource_type == 'Manager':
+            # put in a list to match what we're doing with systems_uris
+            resource_uris = [self.manager_uri]
+
+        for resource_uri in resource_uris:
+            inventory = self.get_nic_inventory(resource_uri)
             ret = inventory.pop('ret') and ret
             if 'entries' in inventory:
-                entries.append(({'systems_uri': systems_uri},
+                entries.append(({'resource_uri': resource_uri},
                                inventory['entries']))
         return dict(ret=ret, entries=entries)
 
-    def get_psu_inventory(self, systems_uri):
+    def get_psu_inventory(self):
         result = {}
         psu_list = []
         psu_results = []
