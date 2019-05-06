@@ -26,7 +26,7 @@ description:
     - Create, update and manage cloud servers on the Hetzner Cloud.
 
 author:
-    - Lukas Kaemmerling (@lkaemmerling)
+    - Lukas Kaemmerling (@LKaemmerling)
 
 options:
     id:
@@ -46,7 +46,9 @@ options:
         type: str
     ssh_keys:
         description:
-            - List of SSH Keys Names
+            - List of SSH key names
+            - The key names correspond to the SSH keys configured for your
+              Hetzner Cloud account access.
         type: list
     volumes:
         description:
@@ -117,7 +119,7 @@ EXAMPLES = """
     image: ubuntu-18.04
     location: fsn1
     ssh_keys:
-      - my-ssh-key
+      - me@myorganisation
     state: present
 
 - name: Resize an existing server
@@ -301,7 +303,7 @@ class AnsibleHcloudServer(Hcloud):
             timeout = 100
             if self.module.params.get("upgrade_disk"):
                 timeout = (
-                    500
+                    1000
                 )  # When we upgrade the disk too the resize progress takes some more time.
             if not self.module.check_mode:
                 self.hcloud_server.change_type(
